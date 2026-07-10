@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import LogoutButton from "./LogoutButton";
 
 export default function Navbar() {
   return (
@@ -37,11 +38,7 @@ export default function Navbar() {
             Profile
           </Link>
 
-          <button
-            className="rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600"
-          >
-            Logout
-          </button>
+          <LogoutButton/>
 
         </div>
 
