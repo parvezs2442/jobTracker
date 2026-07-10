@@ -76,16 +76,19 @@ export async function POST(req: Request) {
       { status: 201 }
     );
   } catch (error) {
-    console.log(error);
+  console.error(error);
 
-    return NextResponse.json(
-      {
-        success: false,
-        message: "Internal Server Error",
-      },
-      { status: 500 }
-    );
-  }
+  return NextResponse.json(
+    {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Internal Server Error",
+    },
+    { status: 500 }
+  );
+}
 }
 
 
