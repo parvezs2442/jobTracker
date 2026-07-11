@@ -1,43 +1,107 @@
 import Link from "next/link";
 import prisma from "@/lib/prisma";
 import JobCard from "@/components/JobCard";
+import { Plus, FolderOpen, Briefcase } from "lucide-react";
+import { cookies } from "next/headers";
+import jwt from "jsonwebtoken";
+
+interface JwtPayload {
+  userId: string;
+}
 
 export default async function JobsPage() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
+
+  if (!token) {
+    return (
+      <div className="flex min-h-[60vh] flex-col items-center justify-center text-center p-8 bg-white border border-zinc-100 rounded-2xl shadow-sm">
+        <h2 className="text-2xl font-bold text-zinc-900">Access Denied</h2>
+        <p className="mt-2 text-zinc-500 max-w-sm">Please log in to your account to view your application dashboard.</p>
+        <Link
+          href="/login"
+          className="mt-6 rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition"
+        >
+          Login Page
+        </Link>
+      </div>
+    );
+  }
+
+  let decoded: JwtPayload;
+  try {
+    decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+  } catch (err) {
+    return (
+      <div className="flex min-h-[60vh] flex-col items-center justify-center text-center p-8 bg-white border border-zinc-100 rounded-2xl shadow-sm">
+        <h2 className="text-2xl font-bold text-zinc-900">Session Expired</h2>
+        <p className="mt-2 text-zinc-500 max-w-sm">Your login session has expired or is invalid. Please log in again.</p>
+        <Link
+          href="/login"
+          className="mt-6 rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition"
+        >
+          Login
+        </Link>
+      </div>
+    );
+  }
+
+  // Fetch only the logged in user's jobs (matching the exact userId filter from the dashboard query)
   const jobs = await prisma.job.findMany({
+    where: {
+      userId: decoded.userId,
+    },
     orderBy: {
       createdAt: "desc",
     },
   });
 
   return (
-    <div className="mx-auto max-w-7xl p-10">
-      <div className="mb-10 flex items-center justify-between">
-        <h1 className="text-4xl font-bold">My Jobs</h1>
-
+    <div className="space-y-8 max-w-6xl mx-auto">
+      {/* Page Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900 sm:text-4xl">
+              My Applications
+            </h1>
+            <span className="inline-flex items-center rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-semibold text-zinc-600">
+              {jobs.length} total
+            </span>
+          </div>
+          <p className="mt-1.5 text-zinc-500">
+            View, search, and coordinate your tracked job opportunities.
+          </p>
+        </div>
         <Link
           href="/jobs/new"
-          className="rounded-lg bg-blue-600 px-5 py-3 text-white hover:bg-blue-700"
+          className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
         >
-          + Add Job
+          <Plus className="h-4 w-4" />
+          <span>Add Job</span>
         </Link>
       </div>
 
+      {/* Main Grid or Empty State */}
       {jobs.length === 0 ? (
-        <div className="rounded-xl border border-dashed p-12 text-center">
-          <h2 className="text-2xl font-semibold">No Jobs Found</h2>
-          <p className="mt-2 text-gray-500">
-            Start tracking your applications by adding your first job.
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-200 bg-white p-16 text-center shadow-sm">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-zinc-50 text-zinc-400 border border-zinc-100">
+            <FolderOpen className="h-6 w-6" />
+          </div>
+          <h2 className="mt-6 text-xl font-bold text-zinc-900">No applications found</h2>
+          <p className="mt-2 text-sm text-zinc-500 max-w-md">
+            Simplify your job hunt by tracking your status, location, salary, interviews, and notes in one place.
           </p>
-
           <Link
             href="/jobs/new"
-            className="mt-6 inline-block rounded-lg bg-blue-600 px-6 py-3 text-white hover:bg-blue-700"
+            className="mt-8 inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition"
           >
-            Add First Job
+            <Plus className="h-4 w-4" />
+            <span>Track Your First Job</span>
           </Link>
         </div>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {jobs.map((job) => (
             <JobCard key={job.id} job={job} />
           ))}
