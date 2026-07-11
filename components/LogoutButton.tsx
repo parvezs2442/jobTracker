@@ -2,52 +2,46 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { LogOut } from "lucide-react";
+import { toast } from "sonner";
 
 export default function LogoutButton() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
 
-    const router = useRouter();
+  async function handleLogout() {
+    try {
+      setLoading(true);
 
-    const [loading, setLoading] = useState(false);
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
 
-    async function handleLogout() {
+      const data = await response.json();
 
-        try {
-
-            setLoading(true);
-
-            const response = await fetch("/api/auth/logout", {
-                method: "POST",
-                credentials: "include",
-            });
-
-            const data = await response.json();
-
-            alert(data.message);
-
-            router.push("/login");
-            router.refresh();
-
-        } catch (error) {
-
-            alert("Something went wrong.");
-
-        } finally {
-
-            setLoading(false);
-
-        }
-
+      if (response.ok) {
+        toast.success(data.message || "Logged out successfully");
+        router.push("/login");
+        router.refresh();
+      } else {
+        toast.error(data.message || "Logout failed");
+      }
+    } catch (error) {
+      toast.error("Something went wrong during logout.");
+    } finally {
+      setLoading(false);
     }
+  }
 
-    return (
-
-        <button
-            onClick={handleLogout}
-            disabled={loading}
-            className="rounded-lg bg-red-600 px-5 py-2 text-white hover:bg-red-700"
-        >
-            {loading ? "Logging Out..." : "Logout"}
-        </button>
-
-    );
+  return (
+    <button
+      onClick={handleLogout}
+      disabled={loading}
+      className="flex w-full items-center justify-center gap-2 rounded-xl border border-rose-200/50 bg-rose-50/50 px-4 py-2.5 text-sm font-semibold text-rose-600 transition-all hover:bg-rose-100/70 disabled:opacity-50 cursor-pointer"
+    >
+      <LogOut className="h-4 w-4" />
+      <span>{loading ? "Logging Out..." : "Logout"}</span>
+    </button>
+  );
 }
