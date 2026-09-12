@@ -49,12 +49,17 @@ interface StatusDistributionItem {
 
 interface FunnelData {
   total: number;
+  applied: number;
   interview: number;
   offer: number;
   hired: number;
+  rejected: number;
   interviewRate: number;
   offerRate: number;
+  offerAfterInterviewRate: number;
   hireRate: number;
+  avgDaysToInterview?: number | null;
+  avgDaysToOffer?: number | null;
 }
 
 interface TimeSeriesItem {
@@ -204,10 +209,10 @@ export default function DashboardAnalytics({ initialUserName }: DashboardAnalyti
         </div>
       </div>
 
-      {/* 1. Real-Data KPI Overview */}
+      {/* 1. Real-Data Funnel Journey Overview */}
       <div className="grid gap-3.5 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
         <KpiCard
-          title="Total Jobs"
+          title="Total Applications"
           value={data?.totalApplications ?? 0}
           icon={Briefcase}
           color="text-blue-400"
@@ -223,7 +228,7 @@ export default function DashboardAnalytics({ initialUserName }: DashboardAnalyti
           border="border-blue-500/20"
         />
         <KpiCard
-          title="Interviews"
+          title="Reached Interview"
           value={data?.statusCounts.interview ?? 0}
           icon={CalendarDays}
           color="text-indigo-400"
@@ -231,7 +236,7 @@ export default function DashboardAnalytics({ initialUserName }: DashboardAnalyti
           border="border-indigo-500/20"
         />
         <KpiCard
-          title="Offers"
+          title="Received Offer"
           value={data?.statusCounts.offer ?? 0}
           icon={Trophy}
           color="text-emerald-400"
@@ -256,55 +261,76 @@ export default function DashboardAnalytics({ initialUserName }: DashboardAnalyti
         />
       </div>
 
-      {/* 2. Pipeline Funnel & Conversion Rates */}
+      {/* 2. Cumulative Application Journey Funnel & Conversion Rates */}
       <div className="rounded-2xl border border-white/[0.08] bg-[#12151E] p-5 sm:p-6 shadow-xs">
         <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div>
             <h2 className="text-sm font-semibold text-white flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-blue-400" />
-              <span>Application Pipeline & Conversion Rates</span>
+              <span>Application Journey Funnel & Progression</span>
             </h2>
             <p className="text-xs text-zinc-400">
-              Live progression metrics across your interview and offer funnel.
+              Cumulative historical progression tracking every stage your applications have ever reached.
             </p>
           </div>
           {hasData && (
-            <div className="flex items-center gap-3 text-xs">
+            <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 text-xs">
               <div className="flex items-center gap-1 text-zinc-300">
                 <Percent className="h-3.5 w-3.5 text-blue-400" />
                 <span>Interview Rate: <strong className="text-white">{data?.funnel.interviewRate}%</strong></span>
               </div>
-              <span className="text-zinc-600">•</span>
+              <span className="text-zinc-600 hidden sm:inline">•</span>
               <div className="flex items-center gap-1 text-zinc-300">
                 <Trophy className="h-3.5 w-3.5 text-emerald-400" />
                 <span>Offer Rate: <strong className="text-white">{data?.funnel.offerRate}%</strong></span>
               </div>
+              <span className="text-zinc-600 hidden sm:inline">•</span>
+              <div className="flex items-center gap-1 text-zinc-300">
+                <Award className="h-3.5 w-3.5 text-cyan-400" />
+                <span>Offer from Interview: <strong className="text-white">{data?.funnel.offerAfterInterviewRate}%</strong></span>
+              </div>
+              {data?.funnel.avgDaysToInterview !== null && data?.funnel.avgDaysToInterview !== undefined && (
+                <>
+                  <span className="text-zinc-600 hidden sm:inline">•</span>
+                  <div className="flex items-center gap-1 text-zinc-400">
+                    <CalendarDays className="h-3.5 w-3.5 text-indigo-400" />
+                    <span>Avg {data.funnel.avgDaysToInterview}d to interview</span>
+                  </div>
+                </>
+              )}
             </div>
           )}
         </div>
 
         {/* Funnel Progress Bars */}
-        <div className="grid gap-4 sm:grid-cols-3 pt-2">
+        <div className="grid gap-3.5 sm:grid-cols-4 pt-2">
           <FunnelMetricBox
-            title="Total Applications"
-            count={data?.funnel.total ?? 0}
+            title="Total Applied"
+            count={data?.funnel.applied ?? data?.funnel.total ?? 0}
             percentage="100%"
             color="bg-blue-500"
-            subtext="All tracked positions"
+            subtext="All submitted applications"
           />
           <FunnelMetricBox
             title="Reached Interview"
             count={data?.funnel.interview ?? 0}
             percentage={`${data?.funnel.interviewRate ?? 0}%`}
             color="bg-indigo-500"
-            subtext={`${data?.funnel.interviewRate ?? 0}% interview rate`}
+            subtext={`${data?.funnel.interviewRate ?? 0}% interview conversion`}
           />
           <FunnelMetricBox
-            title="Received Offer / Hired"
+            title="Received Offer"
             count={data?.funnel.offer ?? 0}
             percentage={`${data?.funnel.offerRate ?? 0}%`}
             color="bg-emerald-500"
-            subtext={`${data?.funnel.offerRate ?? 0}% offer conversion`}
+            subtext={`${data?.funnel.offerAfterInterviewRate ?? 0}% from interviews`}
+          />
+          <FunnelMetricBox
+            title="Hired"
+            count={data?.funnel.hired ?? 0}
+            percentage={`${data?.funnel.hireRate ?? 0}%`}
+            color="bg-cyan-500"
+            subtext={`${data?.funnel.hireRate ?? 0}% total offer acceptance`}
           />
         </div>
       </div>
@@ -389,10 +415,10 @@ export default function DashboardAnalytics({ initialUserName }: DashboardAnalyti
           <div className="mb-4">
             <h2 className="text-sm font-semibold text-white flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-indigo-400" />
-              <span>Status Distribution</span>
+              <span>Current Active Pipeline</span>
             </h2>
             <p className="text-xs text-zinc-400">
-              Live count across active pipeline stages.
+              Active positions currently in each stage (matches Kanban board).
             </p>
           </div>
 

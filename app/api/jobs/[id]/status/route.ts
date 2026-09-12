@@ -95,11 +95,36 @@ export async function PATCH(
       );
     }
 
-    // Update only the status field
+    // Check if status is actually changing (prevent duplicate transitions)
+    if (existingJob.status === sanitizedStatus) {
+      return NextResponse.json(
+        {
+          success: true,
+          message: `Job status is already ${sanitizedStatus}`,
+          job: existingJob,
+        },
+        { status: 200 }
+      );
+    }
+
+    // Update status and append to statusHistory
     const updatedJob = await prisma.job.update({
       where: { id },
       data: {
         status: sanitizedStatus as any,
+        statusHistory: {
+          create: {
+            status: sanitizedStatus as any,
+            changedAt: new Date(),
+          },
+        },
+      },
+      include: {
+        statusHistory: {
+          orderBy: {
+            changedAt: "asc",
+          },
+        },
       },
     });
 

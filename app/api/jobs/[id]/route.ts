@@ -51,6 +51,13 @@ export async function GET(
 
     const job = await prisma.job.findUnique({
       where: { id },
+      include: {
+        statusHistory: {
+          orderBy: {
+            changedAt: "asc",
+          },
+        },
+      },
     });
 
     if (!job) {
@@ -243,6 +250,8 @@ export async function PUT(
       }
     }
 
+    const isStatusChanged = sanitizedStatus !== existingJob.status;
+
     const updatedJob = await prisma.job.update({
       where: { id },
       data: {
@@ -258,6 +267,23 @@ export async function PUT(
         resumeType: newResumeType,
         resumeUrl: newResumeUrl,
         resumeFilename: newResumeFilename,
+        ...(isStatusChanged
+          ? {
+              statusHistory: {
+                create: {
+                  status: sanitizedStatus as any,
+                  changedAt: new Date(),
+                },
+              },
+            }
+          : {}),
+      },
+      include: {
+        statusHistory: {
+          orderBy: {
+            changedAt: "asc",
+          },
+        },
       },
     });
 

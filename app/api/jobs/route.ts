@@ -146,6 +146,19 @@ export async function POST(req: Request) {
         resumeUrl: sanitizedResumeUrl,
         resumeFilename: sanitizedResumeFilename,
         userId,
+        statusHistory: {
+          create: {
+            status: sanitizedStatus as any,
+            changedAt: new Date(),
+          },
+        },
+      },
+      include: {
+        statusHistory: {
+          orderBy: {
+            changedAt: "asc",
+          },
+        },
       },
     });
 
@@ -178,6 +191,13 @@ export async function GET() {
     const jobs = await prisma.job.findMany({
       where: {
         userId,
+      },
+      include: {
+        statusHistory: {
+          orderBy: {
+            changedAt: "asc",
+          },
+        },
       },
       orderBy: {
         createdAt: "desc",
