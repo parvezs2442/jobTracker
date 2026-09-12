@@ -2,6 +2,8 @@ import prisma from "@/lib/prisma";
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import path from "path";
+import fs from "fs/promises";
 
 interface JwtPayload {
   userId: string;
@@ -135,6 +137,9 @@ export async function PUT(
       salary,
       jobUrl,
       notes,
+      resumeType,
+      resumeUrl,
+      resumeFilename,
     } = body;
 
     // Validate required fields
@@ -198,6 +203,46 @@ export async function PUT(
       }
     }
 
+    // Handle resume updates and previous file cleanup
+    let newResumeType = existingJob.resumeType;
+    let newResumeUrl = existingJob.resumeUrl;
+    let newResumeFilename = existingJob.resumeFilename;
+
+    if (resumeType !== undefined) {
+      if (resumeType === "LINK" && resumeUrl && resumeUrl.trim()) {
+        // If previous resume was a PDF, delete the old file
+        if (existingJob.resumeType === "PDF" && existingJob.resumeUrl) {
+          const oldFile = path.join(process.cwd(), "uploads", "resumes", path.basename(existingJob.resumeUrl));
+          fs.unlink(oldFile).catch(() => {});
+        }
+        newResumeType = "LINK";
+        let url = resumeUrl.trim();
+        if (!/^https?:\/\//i.test(url)) {
+          url = "https://" + url;
+        }
+        newResumeUrl = url;
+        newResumeFilename = resumeFilename?.trim() || "Resume Link";
+      } else if (resumeType === "PDF" && resumeUrl && resumeUrl.trim()) {
+        // If previous resume was a different PDF, delete the old file
+        if (existingJob.resumeType === "PDF" && existingJob.resumeUrl && existingJob.resumeUrl !== resumeUrl.trim()) {
+          const oldFile = path.join(process.cwd(), "uploads", "resumes", path.basename(existingJob.resumeUrl));
+          fs.unlink(oldFile).catch(() => {});
+        }
+        newResumeType = "PDF";
+        newResumeUrl = resumeUrl.trim();
+        newResumeFilename = resumeFilename?.trim() || "resume.pdf";
+      } else if (resumeType === null || resumeType === "" || resumeType === "NONE") {
+        // User removed resume completely
+        if (existingJob.resumeType === "PDF" && existingJob.resumeUrl) {
+          const oldFile = path.join(process.cwd(), "uploads", "resumes", path.basename(existingJob.resumeUrl));
+          fs.unlink(oldFile).catch(() => {});
+        }
+        newResumeType = null;
+        newResumeUrl = null;
+        newResumeFilename = null;
+      }
+    }
+
     const updatedJob = await prisma.job.update({
       where: { id },
       data: {
@@ -210,6 +255,9 @@ export async function PUT(
         salary: salary !== undefined ? (salary?.trim() || null) : existingJob.salary,
         jobUrl: jobUrl !== undefined ? (jobUrl?.trim() || null) : existingJob.jobUrl,
         notes: notes !== undefined ? (notes?.trim() || null) : existingJob.notes,
+        resumeType: newResumeType,
+        resumeUrl: newResumeUrl,
+        resumeFilename: newResumeFilename,
       },
     });
 
@@ -233,7 +281,7 @@ export async function PUT(
   }
 }
 
-// DELETE Job with ownership verification (404 vs 403)
+// DELETE Job with ownership verification and resume cleanup
 export async function DELETE(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -265,6 +313,12 @@ export async function DELETE(
         },
         { status: 403 }
       );
+    }
+
+    // Clean up uploaded resume file if exists
+    if (existingJob.resumeType === "PDF" && existingJob.resumeUrl) {
+      const filePath = path.join(process.cwd(), "uploads", "resumes", path.basename(existingJob.resumeUrl));
+      fs.unlink(filePath).catch(() => {});
     }
 
     await prisma.job.delete({

@@ -39,6 +39,10 @@ model Job {
   jobUrl      String?
   notes       String?
 
+  resumeType     String?
+  resumeUrl      String?
+  resumeFilename String?
+
   appliedAt   DateTime  @default(now())
 
   userId      String

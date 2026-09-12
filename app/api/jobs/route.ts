@@ -54,6 +54,9 @@ export async function POST(req: Request) {
       salary,
       jobUrl,
       notes,
+      resumeType,
+      resumeUrl,
+      resumeFilename,
     } = body;
 
     // Validate required fields
@@ -109,6 +112,25 @@ export async function POST(req: Request) {
       sanitizedWorkMode = upperMode;
     }
 
+    // Sanitize resume information
+    let sanitizedResumeType: string | null = null;
+    let sanitizedResumeUrl: string | null = null;
+    let sanitizedResumeFilename: string | null = null;
+
+    if (resumeType === "LINK" && resumeUrl && resumeUrl.trim()) {
+      sanitizedResumeType = "LINK";
+      let url = resumeUrl.trim();
+      if (!/^https?:\/\//i.test(url)) {
+        url = "https://" + url;
+      }
+      sanitizedResumeUrl = url;
+      sanitizedResumeFilename = resumeFilename?.trim() || "Resume Link";
+    } else if (resumeType === "PDF" && resumeUrl && resumeUrl.trim()) {
+      sanitizedResumeType = "PDF";
+      sanitizedResumeUrl = resumeUrl.trim();
+      sanitizedResumeFilename = resumeFilename?.trim() || "resume.pdf";
+    }
+
     const job = await prisma.job.create({
       data: {
         company: company.trim(),
@@ -120,6 +142,9 @@ export async function POST(req: Request) {
         salary: salary?.trim() || null,
         jobUrl: jobUrl?.trim() || null,
         notes: notes?.trim() || null,
+        resumeType: sanitizedResumeType,
+        resumeUrl: sanitizedResumeUrl,
+        resumeFilename: sanitizedResumeFilename,
         userId,
       },
     });

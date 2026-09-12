@@ -11,7 +11,8 @@ import {
   Trash2, 
   Edit3, 
   ChevronRight,
-  MoveRight
+  MoveRight,
+  FileText
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -27,6 +28,8 @@ export interface KanbanJob {
   appliedAt?: string | Date;
   notes?: string | null;
   jobUrl?: string | null;
+  resumeType?: string | null;
+  resumeFilename?: string | null;
 }
 
 interface KanbanCardProps {
@@ -110,7 +113,7 @@ export default function KanbanCard({
       </div>
 
       {/* Metadata Tags */}
-      {(job.location || job.salary || job.workMode) && (
+      {(job.location || job.salary || job.workMode || job.resumeType) && (
         <div className="mt-2.5 flex flex-wrap items-center gap-1.5 text-[11px] text-zinc-400">
           {job.location && (
             <span className="inline-flex items-center gap-1 rounded-md bg-white/[0.04] border border-white/[0.06] px-2 py-0.5 text-zinc-300">
@@ -129,6 +132,13 @@ export default function KanbanCard({
           {job.workMode && (
             <span className="inline-flex items-center rounded-md bg-white/[0.04] border border-white/[0.06] px-2 py-0.5 text-zinc-400">
               {job.workMode.charAt(0) + job.workMode.slice(1).toLowerCase()}
+            </span>
+          )}
+
+          {job.resumeType && (
+            <span className="inline-flex items-center gap-1 rounded-md bg-blue-500/10 border border-blue-500/20 px-1.5 py-0.5 text-[10px] font-medium text-blue-300" title={job.resumeFilename || "Resume attached"}>
+              <FileText className="h-3 w-3 text-blue-400" />
+              <span>Resume attached</span>
             </span>
           )}
         </div>

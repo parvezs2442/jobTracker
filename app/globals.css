@@ -106,3 +106,16 @@ body {
 .ambient-glow-subtle {
   background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.08) 0%, transparent 60%);
 }
+
+/* Hide Next.js development logo, dev indicators, and debug overlays */
+nextjs-portal,
+[data-nextjs-dev-overlay],
+[data-nextjs-toast],
+[class*="nextjs-toast"],
+[class*="dev-tools-indicator"],
+#next-logo {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}

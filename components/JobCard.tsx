@@ -9,7 +9,8 @@ import {
   DollarSign, 
   Edit2, 
   Trash2, 
-  Briefcase 
+  Briefcase,
+  FileText
 } from "lucide-react";
 import { deleteJob } from "@/lib/jobs";
 import { toast } from "sonner";
@@ -24,6 +25,8 @@ interface JobCardProps {
     status: string;
     jobType: string;
     workMode?: string | null;
+    resumeType?: string | null;
+    resumeFilename?: string | null;
   };
 }
 
@@ -117,6 +120,15 @@ export default function JobCard({ job }: JobCardProps) {
               {job.workMode ? ` • ${getWorkModeLabel(job.workMode)}` : ""}
             </span>
           </div>
+
+          {job.resumeType && (
+            <div className="flex items-center gap-2 text-xs text-blue-400">
+              <FileText className="h-3.5 w-3.5 text-blue-400 shrink-0" />
+              <span className="truncate">
+                {job.resumeType === "PDF" ? (job.resumeFilename || "Resume attached (PDF)") : "Resume Link attached"}
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
