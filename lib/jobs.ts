@@ -61,3 +61,21 @@ export async function updateJob(
 
   return res.json();
 }
+
+export async function updateJobStatus(id: string, status: string) {
+  const res = await fetch(`/api/jobs/${id}/status`, {
+    method: "PATCH",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ status }),
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.message || "Failed to update status");
+  }
+
+  return data;
+}

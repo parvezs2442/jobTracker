@@ -39,6 +39,13 @@ export default function Navbar() {
               </Link>
 
               <Link
+                href="/kanban"
+                className="text-xs sm:text-sm font-medium text-zinc-600 hover:text-zinc-950 transition-all-300"
+              >
+                Kanban
+              </Link>
+
+              <Link
                 href="/profile"
                 className="text-xs sm:text-sm font-medium text-zinc-600 hover:text-zinc-950 transition-all-300"
               >

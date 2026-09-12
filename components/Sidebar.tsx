@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { 
   LayoutDashboard, 
   Briefcase, 
+  Kanban,
   User, 
   Menu, 
   X, 
@@ -32,6 +33,11 @@ export default function Sidebar() {
       icon: Briefcase,
     },
     {
+      name: "Kanban Board",
+      href: "/kanban",
+      icon: Kanban,
+    },
+    {
       name: "Profile",
       href: "/profile",
       icon: User,
@@ -41,6 +47,9 @@ export default function Sidebar() {
   const isActive = (path: string) => {
     if (path === "/jobs") {
       return pathname.startsWith("/jobs");
+    }
+    if (path === "/kanban") {
+      return pathname.startsWith("/kanban");
     }
     return pathname === path;
   };

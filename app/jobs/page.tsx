@@ -1,7 +1,7 @@
 import Link from "next/link";
 import prisma from "@/lib/prisma";
 import JobCard from "@/components/JobCard";
-import { Plus, FolderOpen, Briefcase } from "lucide-react";
+import { Plus, FolderOpen, Briefcase, LayoutList, Kanban } from "lucide-react";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import { redirect } from "next/navigation";
@@ -52,13 +52,31 @@ export default async function JobsPage() {
             View, search, and coordinate your tracked job opportunities.
           </p>
         </div>
-        <Link
-          href="/jobs/new"
-          className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
-        >
-          <Plus className="h-4 w-4" />
-          <span>Add Job</span>
-        </Link>
+
+        <div className="flex items-center gap-3">
+          {/* View Mode Switcher */}
+          <div className="flex items-center rounded-xl border border-zinc-200 bg-white p-1 shadow-sm">
+            <div className="flex items-center gap-1.5 rounded-lg bg-zinc-100 px-3 py-1.5 text-xs font-bold text-zinc-900">
+              <LayoutList className="h-3.5 w-3.5" />
+              <span>List</span>
+            </div>
+            <Link
+              href="/kanban"
+              className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 transition"
+            >
+              <Kanban className="h-3.5 w-3.5" />
+              <span>Kanban</span>
+            </Link>
+          </div>
+
+          <Link
+            href="/jobs/new"
+            className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
+          >
+            <Plus className="h-4 w-4" />
+            <span>Add Job</span>
+          </Link>
+        </div>
       </div>
 
       {/* Main Grid or Empty State */}

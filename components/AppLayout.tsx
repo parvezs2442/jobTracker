@@ -19,6 +19,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const isDashboardPage =
     pathname.startsWith("/dashboard") ||
     pathname.startsWith("/jobs") ||
+    pathname.startsWith("/kanban") ||
     pathname.startsWith("/profile");
 
   if (isAuthPage) {
