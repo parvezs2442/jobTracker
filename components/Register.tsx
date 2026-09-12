@@ -34,8 +34,9 @@ export default function RegisterForm() {
       await refreshUser();
       router.push("/dashboard");
       router.refresh();
-    } catch (error: any) {
-      toast.error(error.message || "Failed to create account. Please try again.");
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : "Failed to create account. Please try again.";
+      toast.error(msg);
     } finally {
       setLoading(false);
     }

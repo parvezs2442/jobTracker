@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { 
-  Building2, 
   MapPin, 
   DollarSign, 
   Calendar, 

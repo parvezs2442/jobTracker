@@ -1,12 +1,8 @@
 import prisma from "@/lib/prisma";
 import { cookies } from "next/headers";
-import jwt from "jsonwebtoken";
+import { verifyJwt } from "@/lib/jwt";
 import { redirect } from "next/navigation";
 import DashboardAnalytics from "@/components/DashboardAnalytics";
-
-interface JwtPayload {
-  userId: string;
-}
 
 export default async function DashboardPage() {
   const cookieStore = await cookies();
@@ -16,9 +12,9 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  let decoded: JwtPayload;
+  let decoded;
   try {
-    decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+    decoded = verifyJwt(token);
   } catch {
     redirect("/login");
   }

@@ -1,15 +1,12 @@
 import prisma from "@/lib/prisma";
-import jwt from "jsonwebtoken";
+import { verifyJwt } from "@/lib/jwt";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { JobStatus, JobType, WorkMode } from "@/app/generated/prisma/client";
 
-interface JwtPayload {
-  userId: string;
-}
-
-const VALID_STATUSES = ["APPLIED", "INTERVIEW", "OFFER", "REJECTED", "HIRED"] as const;
-const VALID_JOB_TYPES = ["FULL_TIME", "PART_TIME", "INTERNSHIP", "CONTRACT", "FREELANCE"] as const;
-const VALID_WORK_MODES = ["REMOTE", "HYBRID", "ONSITE"] as const;
+const VALID_STATUSES: JobStatus[] = ["APPLIED", "INTERVIEW", "OFFER", "REJECTED", "HIRED"];
+const VALID_JOB_TYPES: JobType[] = ["FULL_TIME", "PART_TIME", "INTERNSHIP", "CONTRACT", "FREELANCE"];
+const VALID_WORK_MODES: WorkMode[] = ["REMOTE", "HYBRID", "ONSITE"];
 
 async function getAuthenticatedUserId(): Promise<{ userId?: string; errorResponse?: NextResponse }> {
   const cookieStore = await cookies();
@@ -25,7 +22,7 @@ async function getAuthenticatedUserId(): Promise<{ userId?: string; errorRespons
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+    const decoded = verifyJwt(token);
     return { userId: decoded.userId };
   } catch {
     return {
@@ -54,9 +51,8 @@ export async function POST(req: Request) {
       salary,
       jobUrl,
       notes,
-      resumeType,
+      resumeLink,
       resumeUrl,
-      resumeFilename,
     } = body;
 
     // Validate required fields
@@ -71,8 +67,8 @@ export async function POST(req: Request) {
     }
 
     // Validate enum types
-    const sanitizedJobType = jobType.trim().toUpperCase();
-    if (!VALID_JOB_TYPES.includes(sanitizedJobType as any)) {
+    const sanitizedJobType = jobType.trim().toUpperCase() as JobType;
+    if (!VALID_JOB_TYPES.includes(sanitizedJobType)) {
       return NextResponse.json(
         {
           success: false,
@@ -82,10 +78,10 @@ export async function POST(req: Request) {
       );
     }
 
-    let sanitizedStatus = "APPLIED";
+    let sanitizedStatus: JobStatus = "APPLIED";
     if (status) {
-      const upperStatus = status.trim().toUpperCase();
-      if (!VALID_STATUSES.includes(upperStatus as any)) {
+      const upperStatus = status.trim().toUpperCase() as JobStatus;
+      if (!VALID_STATUSES.includes(upperStatus)) {
         return NextResponse.json(
           {
             success: false,
@@ -97,10 +93,10 @@ export async function POST(req: Request) {
       sanitizedStatus = upperStatus;
     }
 
-    let sanitizedWorkMode = undefined;
+    let sanitizedWorkMode: WorkMode | null = null;
     if (workMode && workMode.trim()) {
-      const upperMode = workMode.trim().toUpperCase();
-      if (!VALID_WORK_MODES.includes(upperMode as any)) {
+      const upperMode = workMode.trim().toUpperCase() as WorkMode;
+      if (!VALID_WORK_MODES.includes(upperMode)) {
         return NextResponse.json(
           {
             success: false,
@@ -112,23 +108,15 @@ export async function POST(req: Request) {
       sanitizedWorkMode = upperMode;
     }
 
-    // Sanitize resume information
-    let sanitizedResumeType: string | null = null;
-    let sanitizedResumeUrl: string | null = null;
-    let sanitizedResumeFilename: string | null = null;
-
-    if (resumeType === "LINK" && resumeUrl && resumeUrl.trim()) {
-      sanitizedResumeType = "LINK";
-      let url = resumeUrl.trim();
+    // Sanitize resume URL / link
+    let sanitizedResumeLink: string | null = null;
+    const rawLink = resumeLink || resumeUrl;
+    if (rawLink && typeof rawLink === "string" && rawLink.trim()) {
+      let url = rawLink.trim();
       if (!/^https?:\/\//i.test(url)) {
         url = "https://" + url;
       }
-      sanitizedResumeUrl = url;
-      sanitizedResumeFilename = resumeFilename?.trim() || "Resume Link";
-    } else if (resumeType === "PDF" && resumeUrl && resumeUrl.trim()) {
-      sanitizedResumeType = "PDF";
-      sanitizedResumeUrl = resumeUrl.trim();
-      sanitizedResumeFilename = resumeFilename?.trim() || "resume.pdf";
+      sanitizedResumeLink = url;
     }
 
     const job = await prisma.job.create({
@@ -136,19 +124,20 @@ export async function POST(req: Request) {
         company: company.trim(),
         position: position.trim(),
         location: location?.trim() || null,
-        status: sanitizedStatus as any,
-        jobType: sanitizedJobType as any,
-        workMode: sanitizedWorkMode as any,
+        status: sanitizedStatus,
+        jobType: sanitizedJobType,
+        workMode: sanitizedWorkMode,
         salary: salary?.trim() || null,
         jobUrl: jobUrl?.trim() || null,
         notes: notes?.trim() || null,
-        resumeType: sanitizedResumeType,
-        resumeUrl: sanitizedResumeUrl,
-        resumeFilename: sanitizedResumeFilename,
+        resumeLink: sanitizedResumeLink,
+        resumeType: sanitizedResumeLink ? "LINK" : null,
+        resumeUrl: sanitizedResumeLink,
+        resumeFilename: sanitizedResumeLink ? "Resume Link" : null,
         userId,
         statusHistory: {
           create: {
-            status: sanitizedStatus as any,
+            status: sanitizedStatus,
             changedAt: new Date(),
           },
         },

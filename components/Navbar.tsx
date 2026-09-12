@@ -8,7 +8,7 @@ import { useAuth } from "@/context/AuthContext";
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { user, loading, isAuthenticated } = useAuth();
+  const { loading, isAuthenticated } = useAuth();
 
   const isNavLinkActive = (href: string) => {
     if (href === "/dashboard") return pathname === "/dashboard";

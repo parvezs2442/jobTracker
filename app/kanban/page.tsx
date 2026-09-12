@@ -1,11 +1,7 @@
 import { cookies } from "next/headers";
-import jwt from "jsonwebtoken";
+import { verifyJwt } from "@/lib/jwt";
 import { redirect } from "next/navigation";
 import KanbanBoard from "@/components/KanbanBoard";
-
-interface JwtPayload {
-  userId: string;
-}
 
 export default async function KanbanPage() {
   const cookieStore = await cookies();
@@ -16,7 +12,7 @@ export default async function KanbanPage() {
   }
 
   try {
-    jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+    verifyJwt(token);
   } catch {
     redirect("/login");
   }

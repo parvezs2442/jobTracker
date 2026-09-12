@@ -14,6 +14,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
+import { CreateJobPayload } from "@/lib/jobs";
 
 interface EditJobPageProps {
   params: Promise<{ id: string }>;
@@ -102,7 +103,7 @@ export default function EditJobPage({ params }: EditJobPageProps) {
             }
           }
         }
-      } catch (error) {
+      } catch {
         toast.error("An error occurred while fetching job details");
       } finally {
         setLoading(false);
@@ -199,7 +200,7 @@ export default function EditJobPage({ params }: EditJobPageProps) {
     try {
       setSaving(true);
 
-      const payload: any = {
+      const payload: CreateJobPayload = {
         ...form,
       };
 
@@ -251,7 +252,7 @@ export default function EditJobPage({ params }: EditJobPageProps) {
       toast.success("Job application updated successfully!");
       router.push("/jobs");
       router.refresh();
-    } catch (error) {
+    } catch {
       toast.error("Something went wrong. Please try again.");
     } finally {
       setSaving(false);

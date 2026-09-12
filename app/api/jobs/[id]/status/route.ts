@@ -1,13 +1,10 @@
 import prisma from "@/lib/prisma";
-import jwt from "jsonwebtoken";
+import { verifyJwt } from "@/lib/jwt";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { JobStatus } from "@/app/generated/prisma/client";
 
-interface JwtPayload {
-  userId: string;
-}
-
-const VALID_STATUSES = ["APPLIED", "INTERVIEW", "OFFER", "REJECTED", "HIRED"] as const;
+const VALID_STATUSES: JobStatus[] = ["APPLIED", "INTERVIEW", "OFFER", "REJECTED", "HIRED"];
 
 async function getAuthenticatedUserId(): Promise<{ userId?: string; errorResponse?: NextResponse }> {
   const cookieStore = await cookies();
@@ -23,7 +20,7 @@ async function getAuthenticatedUserId(): Promise<{ userId?: string; errorRespons
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+    const decoded = verifyJwt(token);
     return { userId: decoded.userId };
   } catch {
     return {
@@ -58,8 +55,8 @@ export async function PATCH(
       );
     }
 
-    const sanitizedStatus = status.trim().toUpperCase();
-    if (!VALID_STATUSES.includes(sanitizedStatus as any)) {
+    const sanitizedStatus = status.trim().toUpperCase() as JobStatus;
+    if (!VALID_STATUSES.includes(sanitizedStatus)) {
       return NextResponse.json(
         {
           success: false,
@@ -111,10 +108,10 @@ export async function PATCH(
     const updatedJob = await prisma.job.update({
       where: { id },
       data: {
-        status: sanitizedStatus as any,
+        status: sanitizedStatus,
         statusHistory: {
           create: {
-            status: sanitizedStatus as any,
+            status: sanitizedStatus,
             changedAt: new Date(),
           },
         },

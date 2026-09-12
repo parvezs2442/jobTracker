@@ -31,8 +31,9 @@ export default function LoginForm() {
       await refreshUser();
       router.push("/dashboard");
       router.refresh();
-    } catch (error: any) {
-      toast.error(error.message || "Invalid credentials. Please try again.");
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : "Invalid credentials. Please try again.";
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -148,7 +149,7 @@ export default function LoginForm() {
           </form>
 
           <p className="mt-5 text-center text-xs text-zinc-400">
-            Don't have an account?
+            Don&apos;t have an account?
             <Link
               href="/register"
               className="ml-1.5 font-medium text-blue-400 hover:text-blue-300 transition"

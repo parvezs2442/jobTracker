@@ -1,16 +1,11 @@
 import prisma from "@/lib/prisma";
-import jwt from "jsonwebtoken";
+import { verifyJwt } from "@/lib/jwt";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-
-interface JwtPayload {
-  userId: string;
-}
 
 export async function GET() {
   try {
     const cookieStore = await cookies();
-
     const token = cookieStore.get("token")?.value;
 
     if (!token) {
@@ -23,14 +18,18 @@ export async function GET() {
       );
     }
 
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET!
-    ) as JwtPayload;
+    const decoded = verifyJwt(token);
 
     const user = await prisma.user.findUnique({
       where: {
         id: decoded.userId,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
 
@@ -44,17 +43,15 @@ export async function GET() {
       );
     }
 
-    const { password: _, ...userWithoutPassword } = user;
-
     return NextResponse.json(
       {
         success: true,
-        user: userWithoutPassword,
+        user,
       },
       { status: 200 }
     );
   } catch (error) {
-    console.log(error);
+    console.error("Auth me error:", error);
 
     return NextResponse.json(
       {

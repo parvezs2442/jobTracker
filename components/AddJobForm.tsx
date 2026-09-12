@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { PlusCircle, Loader2, FileText, Upload } from "lucide-react";
+import { PlusCircle, Loader2, FileText } from "lucide-react";
 import { toast } from "sonner";
+import { CreateJobPayload } from "@/lib/jobs";
 
 export default function AddJobForm() {
   const router = useRouter();
@@ -21,14 +22,7 @@ export default function AddJobForm() {
     notes: "",
   });
 
-  const [resumeMode, setResumeMode] = useState<"NONE" | "LINK" | "PDF">("NONE");
   const [resumeLink, setResumeLink] = useState("");
-  const [uploadedFile, setUploadedFile] = useState<{
-    fileKey: string;
-    originalFilename: string;
-    size: number;
-  } | null>(null);
-  const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
 
   function handleChange(
@@ -42,59 +36,6 @@ export default function AddJobForm() {
     });
   }
 
-  function handleResumeModeChange(mode: "NONE" | "LINK" | "PDF") {
-    setResumeMode(mode);
-  }
-
-  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!file.name.toLowerCase().endsWith(".pdf") && file.type !== "application/pdf") {
-      toast.error("Please upload a PDF document (.pdf only)");
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("File exceeds 5MB limit. Please choose a smaller PDF.");
-      return;
-    }
-
-    try {
-      setUploading(true);
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const res = await fetch("/api/upload/resume", {
-        method: "POST",
-        credentials: "include",
-        body: formData,
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        toast.error(data.message || "Failed to upload resume PDF");
-        return;
-      }
-
-      setUploadedFile({
-        fileKey: data.fileKey,
-        originalFilename: data.originalFilename,
-        size: data.size,
-      });
-      toast.success("Resume PDF attached!");
-    } catch (err) {
-      console.error(err);
-      toast.error("Error uploading resume. Please try again.");
-    } finally {
-      setUploading(false);
-    }
-  }
-
-  function removeUploadedFile() {
-    setUploadedFile(null);
-  }
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
@@ -103,36 +44,33 @@ export default function AddJobForm() {
       return;
     }
 
-    if (resumeMode === "LINK" && !resumeLink.trim()) {
-      toast.error("Please provide a valid resume URL or select None.");
-      return;
-    }
-
-    if (resumeMode === "PDF" && !uploadedFile) {
-      toast.error("Please upload a resume PDF or select None.");
-      return;
+    if (resumeLink.trim()) {
+      let urlToTest = resumeLink.trim();
+      if (!/^https?:\/\//i.test(urlToTest)) {
+        urlToTest = "https://" + urlToTest;
+      }
+      try {
+        new URL(urlToTest);
+      } catch {
+        toast.error("Please enter a valid Resume URL (e.g. https://drive.google.com/...)");
+        return;
+      }
     }
 
     try {
       setLoading(true);
 
-      const payload: any = {
-        ...form,
-      };
+      const formattedResumeLink = resumeLink.trim()
+        ? (/^https?:\/\//i.test(resumeLink.trim()) ? resumeLink.trim() : `https://${resumeLink.trim()}`)
+        : undefined;
 
-      if (resumeMode === "LINK" && resumeLink.trim()) {
-        payload.resumeType = "LINK";
-        payload.resumeUrl = resumeLink.trim();
-        payload.resumeFilename = "Resume Link";
-      } else if (resumeMode === "PDF" && uploadedFile) {
-        payload.resumeType = "PDF";
-        payload.resumeUrl = uploadedFile.fileKey;
-        payload.resumeFilename = uploadedFile.originalFilename;
-      } else {
-        payload.resumeType = null;
-        payload.resumeUrl = null;
-        payload.resumeFilename = null;
-      }
+      const payload: CreateJobPayload = {
+        ...form,
+        resumeLink: formattedResumeLink,
+        resumeUrl: formattedResumeLink,
+        resumeType: formattedResumeLink ? "LINK" : undefined,
+        resumeFilename: formattedResumeLink ? "Resume Link" : undefined,
+      };
 
       const res = await fetch("/api/jobs", {
         method: "POST",
@@ -300,125 +238,25 @@ export default function AddJobForm() {
           />
         </div>
 
-        {/* Resume Section */}
-        <div className="md:col-span-2 rounded-xl border border-white/[0.08] bg-[#0E121B] p-4 space-y-3.5">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <div>
-              <label className="block text-xs font-semibold text-zinc-200">
-                Resume Submitted
-              </label>
-              <p className="text-[11px] text-zinc-500">
-                Track the exact resume version submitted for this role.
-              </p>
-            </div>
-
-            {/* Mode Switcher */}
-            <div className="flex items-center gap-1.5 bg-[#0B0D12] p-1 rounded-lg border border-white/[0.06] text-xs self-start sm:self-auto">
-              <button
-                type="button"
-                onClick={() => handleResumeModeChange("NONE")}
-                className={`px-2.5 py-1 rounded-md transition text-xs font-medium cursor-pointer ${
-                  resumeMode === "NONE"
-                    ? "bg-white/[0.1] text-white"
-                    : "text-zinc-400 hover:text-zinc-200"
-                }`}
-              >
-                None
-              </button>
-              <button
-                type="button"
-                onClick={() => handleResumeModeChange("LINK")}
-                className={`px-2.5 py-1 rounded-md transition text-xs font-medium cursor-pointer ${
-                  resumeMode === "LINK"
-                    ? "bg-blue-600/30 text-blue-300 border border-blue-500/30"
-                    : "text-zinc-400 hover:text-zinc-200"
-                }`}
-              >
-                Resume Link
-              </button>
-              <button
-                type="button"
-                onClick={() => handleResumeModeChange("PDF")}
-                className={`px-2.5 py-1 rounded-md transition text-xs font-medium cursor-pointer ${
-                  resumeMode === "PDF"
-                    ? "bg-blue-600/30 text-blue-300 border border-blue-500/30"
-                    : "text-zinc-400 hover:text-zinc-200"
-                }`}
-              >
-                Upload PDF
-              </button>
-            </div>
+        {/* Resume Link */}
+        <div className="md:col-span-2 rounded-xl border border-white/[0.08] bg-[#0E121B] p-4 space-y-2">
+          <div className="flex items-center gap-2">
+            <FileText className="h-4 w-4 text-blue-400" />
+            <label htmlFor="resumeLink" className="text-xs font-semibold text-zinc-200">
+              Resume Link <span className="text-zinc-500 font-normal">(Optional)</span>
+            </label>
           </div>
-
-          {/* Option A: Link */}
-          {resumeMode === "LINK" && (
-            <div className="pt-1">
-              <label className="block text-[11px] font-medium text-zinc-400 mb-1.5">
-                Resume URL (Google Drive, Notion, Portfolio, etc.)
-              </label>
-              <input
-                type="url"
-                placeholder="https://drive.google.com/file/d/... or https://example.com/resume.pdf"
-                value={resumeLink}
-                onChange={(e) => setResumeLink(e.target.value)}
-                className="w-full rounded-xl border border-white/[0.08] bg-[#0B0D12] px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-zinc-500 transition focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 focus:outline-none"
-              />
-            </div>
-          )}
-
-          {/* Option B: PDF Upload */}
-          {resumeMode === "PDF" && (
-            <div className="pt-1">
-              {uploadedFile ? (
-                <div className="flex items-center justify-between p-3 rounded-xl border border-blue-500/30 bg-blue-500/5">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                      <FileText className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-medium text-white truncate max-w-[220px] sm:max-w-md">
-                        {uploadedFile.originalFilename}
-                      </p>
-                      <p className="text-[10px] text-zinc-400">
-                        PDF • {(uploadedFile.size / 1024).toFixed(0)} KB • Attached
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={removeUploadedFile}
-                    className="text-xs text-rose-400 hover:text-rose-300 font-medium px-2 py-1 rounded-lg hover:bg-rose-500/10 transition cursor-pointer"
-                  >
-                    Remove
-                  </button>
-                </div>
-              ) : (
-                <div className="relative">
-                  <label className="flex flex-col items-center justify-center p-4 border border-dashed border-white/[0.12] rounded-xl hover:border-blue-500/40 hover:bg-white/[0.02] transition cursor-pointer">
-                    <Upload className="h-5 w-5 text-zinc-400 mb-1" />
-                    <span className="text-xs font-medium text-zinc-300">
-                      {uploading ? "Uploading PDF..." : "Click to select or drop Resume PDF"}
-                    </span>
-                    <span className="text-[10px] text-zinc-500 mt-0.5">
-                      PDF format only (Max 5MB)
-                    </span>
-                    <input
-                      type="file"
-                      accept=".pdf,application/pdf"
-                      onChange={handleFileUpload}
-                      disabled={uploading}
-                      className="hidden"
-                    />
-                  </label>
-                  {uploading && (
-                    <div className="absolute inset-0 bg-[#0E121B]/80 flex items-center justify-center rounded-xl">
-                      <Loader2 className="h-5 w-5 animate-spin text-blue-400" />
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
+          <p className="text-[11px] text-zinc-400">
+            Attach the link to the specific resume version submitted for this application (Google Drive, Notion, Portfolio, etc.)
+          </p>
+          <input
+            id="resumeLink"
+            type="url"
+            placeholder="https://drive.google.com/file/d/... or https://portfolio.dev/resume.pdf"
+            value={resumeLink}
+            onChange={(e) => setResumeLink(e.target.value)}
+            className="w-full rounded-xl border border-white/[0.08] bg-[#0B0D12] px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-zinc-500 transition focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 focus:outline-none"
+          />
         </div>
 
         {/* Notes */}

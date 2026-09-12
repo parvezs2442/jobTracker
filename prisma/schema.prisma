@@ -39,6 +39,7 @@ model Job {
   jobUrl      String?
   notes       String?
 
+  resumeLink     String?
   resumeType     String?
   resumeUrl      String?
   resumeFilename String?
@@ -51,6 +52,8 @@ model Job {
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([userId])
 }
 
 model JobStatusHistory {

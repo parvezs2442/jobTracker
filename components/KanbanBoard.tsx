@@ -92,8 +92,9 @@ export default function KanbanBoard() {
       if (data.jobs) {
         setJobs(data.jobs);
       }
-    } catch (err: any) {
-      toast.error(err.message || "Failed to load jobs from database");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to load jobs from database";
+      toast.error(message);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -101,8 +102,39 @@ export default function KanbanBoard() {
   }, []);
 
   useEffect(() => {
-    fetchJobs();
-  }, [fetchJobs]);
+    let isMounted = true;
+
+    fetch("/api/jobs", {
+      method: "GET",
+      credentials: "include",
+      cache: "no-store",
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to load jobs");
+        return res.json();
+      })
+      .then((data) => {
+        if (isMounted && data.jobs) {
+          setJobs(data.jobs);
+        }
+      })
+      .catch((err: unknown) => {
+        if (isMounted) {
+          const message = err instanceof Error ? err.message : "Failed to load jobs from database";
+          toast.error(message);
+        }
+      })
+      .finally(() => {
+        if (isMounted) {
+          setLoading(false);
+          setRefreshing(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Core status update with Optimistic UI & Revert on Failure
   const handleStatusChange = async (jobId: string, newStatus: string) => {
@@ -126,12 +158,11 @@ export default function KanbanBoard() {
       // 2. Persist to database via PATCH
       await updateJobStatus(jobId, newStatus);
       toast.success(`Moved ${targetJob.company} to ${targetLabel}`);
-    } catch (error: any) {
+    } catch (error: unknown) {
       // 3. Rollback on failure
       setJobs(originalJobs);
-      toast.error(
-        error.message || `Failed to update status. Reverted ${targetJob.company} to ${previousStatus}.`
-      );
+      const message = error instanceof Error ? error.message : `Failed to update status. Reverted ${targetJob.company} to ${previousStatus}.`;
+      toast.error(message);
     }
   };
 
@@ -172,9 +203,10 @@ export default function KanbanBoard() {
       } else {
         throw new Error(res.message || "Failed to delete");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       setJobs(originalJobs);
-      toast.error(error.message || `Could not delete ${company}. Reverted.`);
+      const message = error instanceof Error ? error.message : `Could not delete ${company}. Reverted.`;
+      toast.error(message);
     }
   };
 

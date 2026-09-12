@@ -1,14 +1,10 @@
 import Link from "next/link";
 import prisma from "@/lib/prisma";
 import JobCard from "@/components/JobCard";
-import { Plus, FolderOpen, Briefcase, LayoutList, Kanban } from "lucide-react";
+import { Plus, FolderOpen, LayoutList, Kanban } from "lucide-react";
 import { cookies } from "next/headers";
-import jwt from "jsonwebtoken";
+import { verifyJwt } from "@/lib/jwt";
 import { redirect } from "next/navigation";
-
-interface JwtPayload {
-  userId: string;
-}
 
 export default async function JobsPage() {
   const cookieStore = await cookies();
@@ -18,10 +14,10 @@ export default async function JobsPage() {
     redirect("/login");
   }
 
-  let decoded: JwtPayload;
+  let decoded;
   try {
-    decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
-  } catch (err) {
+    decoded = verifyJwt(token);
+  } catch {
     redirect("/login");
   }
 

@@ -1,15 +1,10 @@
 import prisma from "@/lib/prisma";
 import { cookies } from "next/headers";
-import jwt from "jsonwebtoken";
-import Link from "next/link";
+import { verifyJwt } from "@/lib/jwt";
 import { redirect } from "next/navigation";
 import LogoutButton from "@/components/LogoutButton";
 import { User, Mail, Calendar, Briefcase, ShieldCheck } from "lucide-react";
 import { format } from "date-fns";
-
-interface JwtPayload {
-  userId: string;
-}
 
 export default async function ProfilePage() {
   const cookieStore = await cookies();
@@ -19,9 +14,9 @@ export default async function ProfilePage() {
     redirect("/login");
   }
 
-  let decoded: JwtPayload;
+  let decoded;
   try {
-    decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+    decoded = verifyJwt(token);
   } catch {
     redirect("/login");
   }

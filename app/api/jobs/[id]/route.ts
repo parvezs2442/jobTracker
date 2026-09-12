@@ -1,17 +1,12 @@
 import prisma from "@/lib/prisma";
-import jwt from "jsonwebtoken";
+import { verifyJwt } from "@/lib/jwt";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import path from "path";
-import fs from "fs/promises";
+import { JobStatus, JobType, WorkMode } from "@/app/generated/prisma/client";
 
-interface JwtPayload {
-  userId: string;
-}
-
-const VALID_STATUSES = ["APPLIED", "INTERVIEW", "OFFER", "REJECTED", "HIRED"] as const;
-const VALID_JOB_TYPES = ["FULL_TIME", "PART_TIME", "INTERNSHIP", "CONTRACT", "FREELANCE"] as const;
-const VALID_WORK_MODES = ["REMOTE", "HYBRID", "ONSITE"] as const;
+const VALID_STATUSES: JobStatus[] = ["APPLIED", "INTERVIEW", "OFFER", "REJECTED", "HIRED"];
+const VALID_JOB_TYPES: JobType[] = ["FULL_TIME", "PART_TIME", "INTERNSHIP", "CONTRACT", "FREELANCE"];
+const VALID_WORK_MODES: WorkMode[] = ["REMOTE", "HYBRID", "ONSITE"];
 
 async function getAuthenticatedUserId(): Promise<{ userId?: string; errorResponse?: NextResponse }> {
   const cookieStore = await cookies();
@@ -27,7 +22,7 @@ async function getAuthenticatedUserId(): Promise<{ userId?: string; errorRespons
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+    const decoded = verifyJwt(token);
     return { userId: decoded.userId };
   } catch {
     return {
@@ -144,9 +139,8 @@ export async function PUT(
       salary,
       jobUrl,
       notes,
-      resumeType,
+      resumeLink,
       resumeUrl,
-      resumeFilename,
     } = body;
 
     // Validate required fields
@@ -161,10 +155,10 @@ export async function PUT(
     }
 
     // Validate enums if provided
-    let sanitizedJobType = existingJob.jobType;
+    let sanitizedJobType: JobType = existingJob.jobType;
     if (jobType) {
-      const upperJobType = jobType.trim().toUpperCase();
-      if (!VALID_JOB_TYPES.includes(upperJobType as any)) {
+      const upperJobType = jobType.trim().toUpperCase() as JobType;
+      if (!VALID_JOB_TYPES.includes(upperJobType)) {
         return NextResponse.json(
           {
             success: false,
@@ -176,10 +170,10 @@ export async function PUT(
       sanitizedJobType = upperJobType;
     }
 
-    let sanitizedStatus = existingJob.status;
+    let sanitizedStatus: JobStatus = existingJob.status;
     if (status) {
-      const upperStatus = status.trim().toUpperCase();
-      if (!VALID_STATUSES.includes(upperStatus as any)) {
+      const upperStatus = status.trim().toUpperCase() as JobStatus;
+      if (!VALID_STATUSES.includes(upperStatus)) {
         return NextResponse.json(
           {
             success: false,
@@ -191,11 +185,11 @@ export async function PUT(
       sanitizedStatus = upperStatus;
     }
 
-    let sanitizedWorkMode = existingJob.workMode;
+    let sanitizedWorkMode: WorkMode | null = existingJob.workMode;
     if (workMode !== undefined) {
       if (workMode && workMode.trim()) {
-        const upperMode = workMode.trim().toUpperCase();
-        if (!VALID_WORK_MODES.includes(upperMode as any)) {
+        const upperMode = workMode.trim().toUpperCase() as WorkMode;
+        if (!VALID_WORK_MODES.includes(upperMode)) {
           return NextResponse.json(
             {
               success: false,
@@ -210,43 +204,18 @@ export async function PUT(
       }
     }
 
-    // Handle resume updates and previous file cleanup
-    let newResumeType = existingJob.resumeType;
-    let newResumeUrl = existingJob.resumeUrl;
-    let newResumeFilename = existingJob.resumeFilename;
-
-    if (resumeType !== undefined) {
-      if (resumeType === "LINK" && resumeUrl && resumeUrl.trim()) {
-        // If previous resume was a PDF, delete the old file
-        if (existingJob.resumeType === "PDF" && existingJob.resumeUrl) {
-          const oldFile = path.join(process.cwd(), "uploads", "resumes", path.basename(existingJob.resumeUrl));
-          fs.unlink(oldFile).catch(() => {});
-        }
-        newResumeType = "LINK";
-        let url = resumeUrl.trim();
+    // Handle resume updates
+    let newResumeLink: string | null = existingJob.resumeLink || existingJob.resumeUrl;
+    const rawResumeLink = resumeLink !== undefined ? resumeLink : resumeUrl;
+    if (rawResumeLink !== undefined) {
+      if (rawResumeLink && typeof rawResumeLink === "string" && rawResumeLink.trim()) {
+        let url = rawResumeLink.trim();
         if (!/^https?:\/\//i.test(url)) {
           url = "https://" + url;
         }
-        newResumeUrl = url;
-        newResumeFilename = resumeFilename?.trim() || "Resume Link";
-      } else if (resumeType === "PDF" && resumeUrl && resumeUrl.trim()) {
-        // If previous resume was a different PDF, delete the old file
-        if (existingJob.resumeType === "PDF" && existingJob.resumeUrl && existingJob.resumeUrl !== resumeUrl.trim()) {
-          const oldFile = path.join(process.cwd(), "uploads", "resumes", path.basename(existingJob.resumeUrl));
-          fs.unlink(oldFile).catch(() => {});
-        }
-        newResumeType = "PDF";
-        newResumeUrl = resumeUrl.trim();
-        newResumeFilename = resumeFilename?.trim() || "resume.pdf";
-      } else if (resumeType === null || resumeType === "" || resumeType === "NONE") {
-        // User removed resume completely
-        if (existingJob.resumeType === "PDF" && existingJob.resumeUrl) {
-          const oldFile = path.join(process.cwd(), "uploads", "resumes", path.basename(existingJob.resumeUrl));
-          fs.unlink(oldFile).catch(() => {});
-        }
-        newResumeType = null;
-        newResumeUrl = null;
-        newResumeFilename = null;
+        newResumeLink = url;
+      } else {
+        newResumeLink = null;
       }
     }
 
@@ -258,20 +227,21 @@ export async function PUT(
         company: company.trim(),
         position: position.trim(),
         location: location !== undefined ? (location?.trim() || null) : existingJob.location,
-        status: sanitizedStatus as any,
-        jobType: sanitizedJobType as any,
-        workMode: sanitizedWorkMode as any,
+        status: sanitizedStatus,
+        jobType: sanitizedJobType,
+        workMode: sanitizedWorkMode,
         salary: salary !== undefined ? (salary?.trim() || null) : existingJob.salary,
         jobUrl: jobUrl !== undefined ? (jobUrl?.trim() || null) : existingJob.jobUrl,
         notes: notes !== undefined ? (notes?.trim() || null) : existingJob.notes,
-        resumeType: newResumeType,
-        resumeUrl: newResumeUrl,
-        resumeFilename: newResumeFilename,
+        resumeLink: newResumeLink,
+        resumeType: newResumeLink ? "LINK" : null,
+        resumeUrl: newResumeLink,
+        resumeFilename: newResumeLink ? "Resume Link" : null,
         ...(isStatusChanged
           ? {
               statusHistory: {
                 create: {
-                  status: sanitizedStatus as any,
+                  status: sanitizedStatus,
                   changedAt: new Date(),
                 },
               },
@@ -307,7 +277,7 @@ export async function PUT(
   }
 }
 
-// DELETE Job with ownership verification and resume cleanup
+// DELETE Job with ownership verification
 export async function DELETE(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -339,12 +309,6 @@ export async function DELETE(
         },
         { status: 403 }
       );
-    }
-
-    // Clean up uploaded resume file if exists
-    if (existingJob.resumeType === "PDF" && existingJob.resumeUrl) {
-      const filePath = path.join(process.cwd(), "uploads", "resumes", path.basename(existingJob.resumeUrl));
-      fs.unlink(filePath).catch(() => {});
     }
 
     await prisma.job.delete({

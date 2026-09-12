@@ -1,12 +1,8 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import jwt from "jsonwebtoken";
+import { verifyJwt } from "@/lib/jwt";
 import prisma from "@/lib/prisma";
 import { format, subMonths, startOfMonth, isSameMonth } from "date-fns";
-
-interface JwtPayload {
-  userId: string;
-}
 
 export async function GET() {
   try {
@@ -21,9 +17,9 @@ export async function GET() {
       );
     }
 
-    let decoded: JwtPayload;
+    let decoded;
     try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+      decoded = verifyJwt(token);
     } catch {
       return NextResponse.json(
         { success: false, message: "Unauthorized: Invalid or expired token." },
@@ -60,7 +56,7 @@ export async function GET() {
     };
 
     // 4. Historical Funnel Metrics (Complete Journey - each job counted at most once per stage)
-    let historicalApplied = totalApplications; // Every tracked application was submitted
+    const historicalApplied = totalApplications; // Every tracked application was submitted
     let historicalInterview = 0;
     let historicalOffer = 0;
     let historicalHired = 0;
@@ -267,6 +263,7 @@ export async function GET() {
       workMode: job.workMode,
       appliedAt: job.appliedAt,
       createdAt: job.createdAt,
+      resumeLink: job.resumeLink || job.resumeUrl,
       resumeType: job.resumeType,
       resumeFilename: job.resumeFilename,
     }));

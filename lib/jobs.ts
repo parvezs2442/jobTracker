@@ -8,6 +8,7 @@ export interface CreateJobPayload {
   workMode?: string;
   jobUrl?: string;
   notes?: string;
+  resumeLink?: string | null;
   resumeType?: "LINK" | "PDF" | null | string;
   resumeUrl?: string | null;
   resumeFilename?: string | null;
@@ -25,6 +26,7 @@ export interface JobItem {
   workMode?: string | null;
   jobUrl?: string | null;
   notes?: string | null;
+  resumeLink?: string | null;
   resumeType?: "LINK" | "PDF" | null | string;
   resumeUrl?: string | null;
   resumeFilename?: string | null;

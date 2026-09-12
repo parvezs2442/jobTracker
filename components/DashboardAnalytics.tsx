@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { format } from "date-fns";
 import {
   Briefcase,
   Send,
@@ -99,7 +98,6 @@ export default function DashboardAnalytics({ initialUserName }: DashboardAnalyti
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [mounted, setMounted] = useState(false);
 
   const fetchAnalytics = useCallback(async (isSilent = false) => {
     try {
@@ -126,9 +124,33 @@ export default function DashboardAnalytics({ initialUserName }: DashboardAnalyti
   }, []);
 
   useEffect(() => {
-    setMounted(true);
-    fetchAnalytics();
-  }, [fetchAnalytics]);
+    let isMounted = true;
+
+    fetch("/api/dashboard/analytics", {
+      cache: "no-store",
+      credentials: "include",
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (!isMounted) return;
+        if (json?.success && json?.analytics) {
+          setData(json.analytics);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load analytics:", err);
+      })
+      .finally(() => {
+        if (isMounted) {
+          setLoading(false);
+          setRefreshing(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const getStatusBadge = (status: string) => {
     switch (status.toUpperCase()) {
@@ -350,7 +372,7 @@ export default function DashboardAnalytics({ initialUserName }: DashboardAnalyti
           </div>
 
           <div className="h-[220px] w-full pt-2">
-            {mounted && hasData ? (
+            {hasData ? (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
                   data={data?.applicationsOverTime}
@@ -386,7 +408,7 @@ export default function DashboardAnalytics({ initialUserName }: DashboardAnalyti
                       boxShadow: "0 10px 25px -5px rgba(0,0,0,0.5)",
                     }}
                     labelStyle={{ color: "#A1A1AA", marginBottom: "4px" }}
-                    formatter={(value: any) => [`${value} applications`, "Submitted"]}
+                    formatter={(value: unknown) => [`${value ?? 0} applications`, "Submitted"]}
                   />
                   <Area
                     type="monotone"
@@ -423,7 +445,7 @@ export default function DashboardAnalytics({ initialUserName }: DashboardAnalyti
           </div>
 
           <div className="h-[220px] w-full pt-1">
-            {mounted && hasData ? (
+            {hasData ? (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={data?.statusDistribution}
@@ -452,10 +474,10 @@ export default function DashboardAnalytics({ initialUserName }: DashboardAnalyti
                       color: "#FFFFFF",
                     }}
                     cursor={{ fill: "rgba(255,255,255,0.03)" }}
-                    formatter={(value: any, name: any, item: any) => [
-                      `${value} jobs`,
-                      item.payload.status,
-                    ]}
+                    formatter={(value: unknown, _name: unknown, item: unknown) => {
+                      const payload = (item as { payload?: { status?: string } })?.payload;
+                      return [`${value ?? 0} jobs`, payload?.status || "Jobs"];
+                    }}
                   />
                   <Bar dataKey="count" radius={[4, 4, 0, 0]}>
                     {data?.statusDistribution.map((entry, index) => (

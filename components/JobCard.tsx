@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { 
-  Building2, 
   MapPin, 
   DollarSign, 
   Edit2, 
@@ -70,7 +69,7 @@ export default function JobCard({ job }: JobCardProps) {
       } else {
         toast.error(res.message || "Failed to delete application.");
       }
-    } catch (error) {
+    } catch {
       toast.error("Something went wrong. Please try again.");
     } finally {
       setIsDeleting(false);

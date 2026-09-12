@@ -1,6 +1,6 @@
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import { signJwt } from "@/lib/jwt";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
@@ -51,26 +51,24 @@ export async function POST(req: Request) {
       );
     }
 
-    // Generate JWT
-    const token = jwt.sign(
-      {
-        userId: user.id,
-      },
-      process.env.JWT_SECRET!,
-      {
-        expiresIn: "7d",
-      }
-    );
+    // Generate JWT via secure centralized helper
+    const token = signJwt({ userId: user.id });
 
-    // Remove Password
-    const { password: _, ...userWithoutPassword } = user;
+    // Exclude password from response
+    const safeUser = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
 
     // Response
     const response = NextResponse.json(
       {
         success: true,
         message: "Login Successful",
-        user: userWithoutPassword,
+        user: safeUser,
       },
       { status: 200 }
     );
@@ -86,7 +84,7 @@ export async function POST(req: Request) {
 
     return response;
   } catch (error) {
-    console.log(error);
+    console.error("Login error:", error);
 
     return NextResponse.json(
       {
