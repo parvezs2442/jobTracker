@@ -83,13 +83,42 @@ export async function POST(req: Request) {
     });
 
     return response;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Login error:", error);
+
+    const err = error as Error & { code?: string };
+    const errMsg = err?.message || "";
+
+    if (errMsg.includes("JWT_SECRET")) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Server configuration error: JWT_SECRET is missing or using an insecure placeholder in production.",
+        },
+        { status: 500 }
+      );
+    }
+
+    if (
+      errMsg.includes("Can't reach database") ||
+      errMsg.includes("does not exist") ||
+      errMsg.includes("connect ECONNREFUSED") ||
+      err?.code === "P1001" ||
+      err?.code === "P2021"
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Database connection failed or tables are missing. Please verify DATABASE_URL and run 'prisma db push'.",
+        },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json(
       {
         success: false,
-        message: "Internal Server Error",
+        message: "Internal Server Error. Check server logs for details.",
       },
       { status: 500 }
     );
