@@ -1,34 +1,17 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { LogOut } from "lucide-react";
-import { toast } from "sonner";
+import { useAuth } from "@/context/AuthContext";
 
 export default function LogoutButton() {
-  const router = useRouter();
+  const { logout } = useAuth();
   const [loading, setLoading] = useState(false);
 
   async function handleLogout() {
     try {
       setLoading(true);
-
-      const response = await fetch("/api/auth/logout", {
-        method: "POST",
-        credentials: "include",
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        toast.success(data.message || "Logged out successfully");
-        router.push("/login");
-        router.refresh();
-      } else {
-        toast.error(data.message || "Logout failed");
-      }
-    } catch (error) {
-      toast.error("Something went wrong during logout.");
+      await logout();
     } finally {
       setLoading(false);
     }
@@ -44,4 +27,4 @@ export default function LogoutButton() {
       <span>{loading ? "Logging Out..." : "Logout"}</span>
     </button>
   );
-}
+}

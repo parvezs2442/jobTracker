@@ -4,6 +4,7 @@ import JobCard from "@/components/JobCard";
 import { Plus, FolderOpen, Briefcase } from "lucide-react";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
+import { redirect } from "next/navigation";
 
 interface JwtPayload {
   userId: string;
@@ -14,36 +15,14 @@ export default async function JobsPage() {
   const token = cookieStore.get("token")?.value;
 
   if (!token) {
-    return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center text-center p-8 bg-white border border-zinc-100 rounded-2xl shadow-sm">
-        <h2 className="text-2xl font-bold text-zinc-900">Access Denied</h2>
-        <p className="mt-2 text-zinc-500 max-w-sm">Please log in to your account to view your application dashboard.</p>
-        <Link
-          href="/login"
-          className="mt-6 rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition"
-        >
-          Login Page
-        </Link>
-      </div>
-    );
+    redirect("/login");
   }
 
   let decoded: JwtPayload;
   try {
     decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
   } catch (err) {
-    return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center text-center p-8 bg-white border border-zinc-100 rounded-2xl shadow-sm">
-        <h2 className="text-2xl font-bold text-zinc-900">Session Expired</h2>
-        <p className="mt-2 text-zinc-500 max-w-sm">Your login session has expired or is invalid. Please log in again.</p>
-        <Link
-          href="/login"
-          className="mt-6 rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition"
-        >
-          Login
-        </Link>
-      </div>
-    );
+    redirect("/login");
   }
 
   // Fetch only the logged in user's jobs (matching the exact userId filter from the dashboard query)

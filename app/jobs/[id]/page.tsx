@@ -39,6 +39,16 @@ export default function EditJobPage({ params }: EditJobPageProps) {
         const data = await res.json();
         
         if (!res.ok) {
+          if (res.status === 401) {
+            toast.error("Please log in to continue");
+            router.push("/login");
+            return;
+          }
+          if (res.status === 403) {
+            toast.error("Forbidden: You do not have permission to view this job");
+            router.push("/jobs");
+            return;
+          }
           toast.error(data.message || "Failed to fetch job details");
           router.push("/jobs");
           return;
@@ -81,7 +91,7 @@ export default function EditJobPage({ params }: EditJobPageProps) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    if (!form.company || !form.position) {
+    if (!form.company?.trim() || !form.position?.trim()) {
       toast.error("Company and Position are required fields.");
       return;
     }
@@ -101,6 +111,16 @@ export default function EditJobPage({ params }: EditJobPageProps) {
       const data = await res.json();
 
       if (!res.ok) {
+        if (res.status === 401) {
+          toast.error("Session expired. Please log in again.");
+          router.push("/login");
+          return;
+        }
+        if (res.status === 403) {
+          toast.error("Forbidden: You do not have permission to edit this job");
+          router.push("/jobs");
+          return;
+        }
         toast.error(data.message || "Failed to update job application");
         return;
       }

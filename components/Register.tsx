@@ -6,9 +6,11 @@ import { registerUser } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { Compass, Sparkles, CheckCircle2, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/context/AuthContext";
 
 export default function RegisterForm() {
   const router = useRouter();
+  const { refreshUser } = useAuth();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -28,8 +30,10 @@ export default function RegisterForm() {
 
       const res = await registerUser(name, email, password);
 
-      toast.success(res.message || "Account created successfully! Please log in.");
-      router.push("/login");
+      toast.success(res.message || "Account created successfully!");
+      await refreshUser();
+      router.push("/dashboard");
+      router.refresh();
     } catch (error: any) {
       toast.error(error.message || "Failed to create account. Please try again.");
     } finally {

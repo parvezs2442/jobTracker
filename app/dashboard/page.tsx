@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { 
   Briefcase, 
   Send, 
@@ -11,7 +12,8 @@ import {
   TrendingUp, 
   Building2, 
   User,
-  ArrowUpRight
+  ArrowUpRight,
+  ExternalLink
 } from "lucide-react";
 
 interface JwtPayload {
@@ -23,36 +25,14 @@ export default async function DashboardPage() {
   const token = cookieStore.get("token")?.value;
 
   if (!token) {
-    return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center text-center p-8 bg-white border border-zinc-100 rounded-2xl shadow-sm">
-        <h2 className="text-2xl font-bold text-zinc-900">Access Denied</h2>
-        <p className="mt-2 text-zinc-500 max-w-sm">Please log in to your account to view your application dashboard.</p>
-        <Link
-          href="/login"
-          className="mt-6 rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition"
-        >
-          Login Page
-        </Link>
-      </div>
-    );
+    redirect("/login");
   }
 
   let decoded: JwtPayload;
   try {
     decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
   } catch (err) {
-    return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center text-center p-8 bg-white border border-zinc-100 rounded-2xl shadow-sm">
-        <h2 className="text-2xl font-bold text-zinc-900">Session Expired</h2>
-        <p className="mt-2 text-zinc-500 max-w-sm">Your login session has expired or is invalid. Please log in again.</p>
-        <Link
-          href="/login"
-          className="mt-6 rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition"
-        >
-          Login
-        </Link>
-      </div>
-    );
+    redirect("/login");
   }
 
   const user = await prisma.user.findUnique({
@@ -60,6 +40,10 @@ export default async function DashboardPage() {
       id: decoded.userId,
     },
   });
+
+  if (!user) {
+    redirect("/login");
+  }
 
   const jobs = await prisma.job.findMany({
     where: {
@@ -227,6 +211,7 @@ export default async function DashboardPage() {
                     <th className="pb-3 text-left">Company</th>
                     <th className="pb-3 text-left">Position</th>
                     <th className="pb-3 text-left">Status</th>
+                    <th className="pb-3 text-right">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-50">
@@ -236,18 +221,34 @@ export default async function DashboardPage() {
                       className="group transition-all hover:bg-zinc-50/50"
                     >
                       <td className="py-3.5 font-medium text-zinc-900 pr-4">
-                        <div className="flex items-center gap-2.5">
+                        <Link
+                          href={`/jobs/${job.id}`}
+                          className="flex items-center gap-2.5 hover:text-blue-600 transition"
+                        >
                           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-zinc-100 text-xs font-bold text-zinc-600 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors">
                             {job.company.charAt(0)}
                           </div>
                           <span className="truncate">{job.company}</span>
-                        </div>
+                        </Link>
                       </td>
-                      <td className="py-3.5 text-zinc-500 pr-4 truncate">{job.position}</td>
+                      <td className="py-3.5 text-zinc-500 pr-4 truncate">
+                        <Link href={`/jobs/${job.id}`} className="hover:text-zinc-800 transition">
+                          {job.position}
+                        </Link>
+                      </td>
                       <td className="py-3.5 pr-2">
                         <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${getStatusStyle(job.status)}`}>
                           {job.status.charAt(0) + job.status.slice(1).toLowerCase()}
                         </span>
+                      </td>
+                      <td className="py-3.5 text-right">
+                        <Link
+                          href={`/jobs/${job.id}`}
+                          className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline"
+                        >
+                          <span>Manage</span>
+                          <ArrowUpRight className="h-3.5 w-3.5" />
+                        </Link>
                       </td>
                     </tr>
                   ))}

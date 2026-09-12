@@ -2,8 +2,10 @@ import prisma from "@/lib/prisma";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import LogoutButton from "@/components/LogoutButton";
-import { User, Mail, ShieldAlert } from "lucide-react";
+import { User, Mail, Calendar, Briefcase, ShieldCheck } from "lucide-react";
+import { format } from "date-fns";
 
 interface JwtPayload {
   userId: string;
@@ -14,36 +16,14 @@ export default async function ProfilePage() {
   const token = cookieStore.get("token")?.value;
 
   if (!token) {
-    return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center text-center p-8 bg-white border border-zinc-100 rounded-2xl shadow-sm">
-        <h2 className="text-2xl font-bold text-zinc-900">Access Denied</h2>
-        <p className="mt-2 text-zinc-500 max-w-sm">Please log in to your account to view your profile settings.</p>
-        <Link
-          href="/login"
-          className="mt-6 rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition"
-        >
-          Login Page
-        </Link>
-      </div>
-    );
+    redirect("/login");
   }
 
   let decoded: JwtPayload;
   try {
     decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
-  } catch (err) {
-    return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center text-center p-8 bg-white border border-zinc-100 rounded-2xl shadow-sm">
-        <h2 className="text-2xl font-bold text-zinc-900">Session Expired</h2>
-        <p className="mt-2 text-zinc-500 max-w-sm">Your login session has expired or is invalid. Please log in again.</p>
-        <Link
-          href="/login"
-          className="mt-6 rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition"
-        >
-          Login
-        </Link>
-      </div>
-    );
+  } catch {
+    redirect("/login");
   }
 
   const user = await prisma.user.findUnique({
@@ -53,19 +33,18 @@ export default async function ProfilePage() {
   });
 
   if (!user) {
-    return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center text-center p-8 bg-white border border-zinc-100 rounded-2xl shadow-sm">
-        <h2 className="text-2xl font-bold text-zinc-900">User Not Found</h2>
-        <p className="mt-2 text-zinc-500 max-w-sm">We could not retrieve your account information. Please log in again.</p>
-        <Link
-          href="/login"
-          className="mt-6 rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition"
-        >
-          Login
-        </Link>
-      </div>
-    );
+    redirect("/login");
   }
+
+  const totalApplications = await prisma.job.count({
+    where: {
+      userId: user.id,
+    },
+  });
+
+  const memberSince = user.createdAt
+    ? format(new Date(user.createdAt), "MMMM d, yyyy")
+    : "Recently";
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -133,13 +112,43 @@ export default async function ProfilePage() {
               </h3>
             </div>
           </div>
+
+          {/* Member Since block */}
+          <div className="rounded-xl border border-zinc-100 bg-zinc-50/50 p-5 flex gap-4 items-start">
+            <div className="rounded-lg bg-white border border-zinc-100 p-2 text-zinc-400">
+              <Calendar className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
+                Member Since
+              </p>
+              <h3 className="mt-1.5 text-base font-semibold text-zinc-900">
+                {memberSince}
+              </h3>
+            </div>
+          </div>
+
+          {/* Applications Logged block */}
+          <div className="rounded-xl border border-zinc-100 bg-zinc-50/50 p-5 flex gap-4 items-start">
+            <div className="rounded-lg bg-white border border-zinc-100 p-2 text-zinc-400">
+              <Briefcase className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
+                Applications Tracked
+              </p>
+              <h3 className="mt-1.5 text-base font-semibold text-zinc-900">
+                {totalApplications} {totalApplications === 1 ? "Job" : "Jobs"}
+              </h3>
+            </div>
+          </div>
         </div>
 
-        {/* Security Warning Section */}
-        <div className="rounded-xl border border-amber-100 bg-amber-50/40 p-4 flex gap-3 text-sm text-amber-800">
-          <ShieldAlert className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+        {/* Security / Isolation note */}
+        <div className="rounded-xl border border-blue-100 bg-blue-50/40 p-4 flex gap-3 text-sm text-blue-900">
+          <ShieldCheck className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
           <div>
-            <span className="font-semibold">Security Note:</span> To change your name, email, or credentials, please contact your systems administrator or support channels.
+            <span className="font-semibold">User Data Protection:</span> Your job records and application statistics are isolated to your account and protected by JWT authentication.
           </div>
         </div>
 

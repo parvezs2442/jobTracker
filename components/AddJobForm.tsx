@@ -37,7 +37,7 @@ export default function AddJobForm() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    if (!form.company || !form.position) {
+    if (!form.company?.trim() || !form.position?.trim()) {
       toast.error("Company and Position are required fields.");
       return;
     }
@@ -57,6 +57,11 @@ export default function AddJobForm() {
       const data = await res.json();
 
       if (!res.ok) {
+        if (res.status === 401) {
+          toast.error("Session expired. Please log in again.");
+          router.push("/login");
+          return;
+        }
         toast.error(data.message || "Failed to add job application");
         return;
       }

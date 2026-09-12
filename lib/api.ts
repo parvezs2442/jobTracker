@@ -1,17 +1,21 @@
 // lib/api.ts
 
-const BASE_URL = "http://localhost:3000";
-
 export async function apiRequest(
   endpoint: string,
-  options: RequestInit
+  options?: RequestInit
 ) {
-  const response = await fetch(`${BASE_URL}${endpoint}`, {
-    headers: {
-      "Content-Type": "application/json",
-    },
+  const isServer = typeof window === "undefined";
+  const baseUrl = isServer
+    ? process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+    : "";
+
+  const response = await fetch(`${baseUrl}${endpoint}`, {
     credentials: "include",
     ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(options?.headers || {}),
+    },
   });
 
   const data = await response.json();
@@ -21,4 +25,4 @@ export async function apiRequest(
   }
 
   return data;
-}
+}

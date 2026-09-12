@@ -6,9 +6,11 @@ import { loginUser } from "@/lib/auth";
 import Link from "next/link";
 import { Compass, Sparkles, CheckCircle2, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/context/AuthContext";
 
 export default function LoginForm() {
   const router = useRouter();
+  const { refreshUser } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -26,6 +28,7 @@ export default function LoginForm() {
       setLoading(true);
       const res = await loginUser(email, password);
       toast.success(res.message || "Logged in successfully!");
+      await refreshUser();
       router.push("/dashboard");
       router.refresh();
     } catch (error: any) {

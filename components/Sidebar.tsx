@@ -13,10 +13,12 @@ import {
   Compass
 } from "lucide-react";
 import LogoutButton from "./LogoutButton";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Sidebar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const { user, loading } = useAuth();
 
   const menuItems = [
     {
@@ -42,6 +44,8 @@ export default function Sidebar() {
     }
     return pathname === path;
   };
+
+  const userInitial = user?.name ? user.name.trim().charAt(0).toUpperCase() : "U";
 
   return (
     <>
@@ -124,18 +128,35 @@ export default function Sidebar() {
 
         {/* Bottom Profile & Actions */}
         <div className="border-t p-4 flex flex-col gap-3">
-          <div className="flex items-center gap-3 px-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 font-semibold text-blue-700">
-              P
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="truncate text-sm font-semibold text-zinc-900">Parvez Saifi</p>
-              <p className="truncate text-xs text-zinc-500">parvez@gmail.com</p>
-            </div>
-          </div>
+          <Link
+            href="/profile"
+            onClick={() => setIsOpen(false)}
+            className="flex items-center gap-3 px-2 py-1.5 rounded-xl hover:bg-zinc-50 transition"
+          >
+            {loading ? (
+              <div className="flex items-center gap-3 w-full animate-pulse">
+                <div className="h-9 w-9 rounded-full bg-zinc-200" />
+                <div className="flex-1 space-y-1.5">
+                  <div className="h-3.5 bg-zinc-200 rounded w-24" />
+                  <div className="h-2.5 bg-zinc-200 rounded w-32" />
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 font-semibold text-white text-sm shadow-sm">
+                  {userInitial}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="truncate text-sm font-semibold text-zinc-900">{user?.name || "My Account"}</p>
+                  <p className="truncate text-xs text-zinc-500">{user?.email || "Signed in"}</p>
+                </div>
+              </>
+            )}
+          </Link>
           <LogoutButton />
         </div>
       </aside>
     </>
   );
 }
+
