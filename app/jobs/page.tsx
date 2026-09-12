@@ -36,44 +36,44 @@ export default async function JobsPage() {
   });
 
   return (
-    <div className="space-y-8 max-w-6xl mx-auto">
+    <div className="space-y-8 max-w-6xl mx-auto pb-10">
       {/* Page Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="flex items-center gap-2.5">
-            <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900 sm:text-4xl">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
               My Applications
             </h1>
-            <span className="inline-flex items-center rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-semibold text-zinc-600">
+            <span className="inline-flex items-center rounded-full bg-white/[0.06] border border-white/[0.08] px-2.5 py-0.5 text-xs font-semibold text-zinc-300">
               {jobs.length} total
             </span>
           </div>
-          <p className="mt-1.5 text-zinc-500">
+          <p className="mt-1 text-xs sm:text-sm text-zinc-400">
             View, search, and coordinate your tracked job opportunities.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           {/* View Mode Switcher */}
-          <div className="flex items-center rounded-xl border border-zinc-200 bg-white p-1 shadow-sm">
-            <div className="flex items-center gap-1.5 rounded-lg bg-zinc-100 px-3 py-1.5 text-xs font-bold text-zinc-900">
-              <LayoutList className="h-3.5 w-3.5" />
+          <div className="flex items-center rounded-xl border border-white/[0.08] bg-[#12151E] p-1 shadow-xs">
+            <div className="flex items-center gap-1.5 rounded-lg bg-white/[0.08] px-2.5 py-1 text-xs font-semibold text-white shadow-xs">
+              <LayoutList className="h-3.5 w-3.5 text-blue-400" />
               <span>List</span>
             </div>
             <Link
               href="/kanban"
-              className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 transition"
+              className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium text-zinc-400 hover:text-white transition"
             >
               <Kanban className="h-3.5 w-3.5" />
-              <span>Kanban</span>
+              <span>Board</span>
             </Link>
           </div>
 
           <Link
             href="/jobs/new"
-            className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
+            className="flex items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs transition hover:bg-blue-500"
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-3.5 w-3.5" />
             <span>Add Job</span>
           </Link>
         </div>
@@ -81,24 +81,24 @@ export default async function JobsPage() {
 
       {/* Main Grid or Empty State */}
       {jobs.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-200 bg-white p-16 text-center shadow-sm">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-zinc-50 text-zinc-400 border border-zinc-100">
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/[0.08] bg-[#12151E] p-16 text-center shadow-xs">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/[0.04] text-zinc-500 border border-white/[0.06]">
             <FolderOpen className="h-6 w-6" />
           </div>
-          <h2 className="mt-6 text-xl font-bold text-zinc-900">No applications found</h2>
-          <p className="mt-2 text-sm text-zinc-500 max-w-md">
-            Simplify your job hunt by tracking your status, location, salary, interviews, and notes in one place.
+          <h2 className="mt-4 text-base font-bold text-white">No applications found</h2>
+          <p className="mt-1 text-xs text-zinc-400 max-w-sm">
+            Simplify your career search by tracking application statuses, locations, and salaries in one unified workspace.
           </p>
           <Link
             href="/jobs/new"
-            className="mt-8 inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition"
+            className="mt-6 inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-blue-500 transition"
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-3.5 w-3.5" />
             <span>Track Your First Job</span>
           </Link>
         </div>
       ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {jobs.map((job) => (
             <JobCard key={job.id} job={job} />
           ))}

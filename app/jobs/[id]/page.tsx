@@ -138,44 +138,44 @@ export default function EditJobPage({ params }: EditJobPageProps) {
   if (loading) {
     return (
       <div className="flex min-h-[50vh] flex-col items-center justify-center space-y-4">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-        <p className="text-sm font-semibold text-zinc-500">Loading job details...</p>
+        <Loader2 className="h-7 w-7 animate-spin text-blue-500" />
+        <p className="text-xs font-semibold text-zinc-400 tracking-wide">Loading job details...</p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="max-w-3xl mx-auto space-y-5">
       {/* Header Link */}
       <div>
         <Link
           href="/jobs"
-          className="inline-flex items-center gap-2 text-sm font-semibold text-zinc-500 hover:text-zinc-950 transition"
+          className="inline-flex items-center gap-2 text-xs font-medium text-zinc-400 hover:text-white transition"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-3.5 w-3.5" />
           <span>Back to Applications</span>
         </Link>
       </div>
 
       {/* Main Title */}
       <div>
-        <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900">
+        <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-white">
           Edit Application
         </h1>
-        <p className="mt-1 text-sm text-zinc-500">
-          Update the status or log details for your application at {form.company}.
+        <p className="mt-1 text-xs sm:text-sm text-zinc-400">
+          Update the status or log details for your application at <span className="text-zinc-200 font-medium">{form.company || "the company"}</span>.
         </p>
       </div>
 
       {/* Form Card */}
       <form
         onSubmit={handleSubmit}
-        className="rounded-2xl border border-zinc-100 bg-white p-6 md:p-8 shadow-sm space-y-6"
+        className="rounded-2xl border border-white/[0.08] bg-[#12151E] p-5 sm:p-7 shadow-xs space-y-5"
       >
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-4 sm:gap-5 md:grid-cols-2">
           {/* Company */}
           <div className="md:col-span-2">
-            <label className="block text-sm font-semibold text-zinc-700 mb-1.5">
+            <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
               Company Name <span className="text-rose-500">*</span>
             </label>
             <input
@@ -183,14 +183,14 @@ export default function EditJobPage({ params }: EditJobPageProps) {
               placeholder="Google, Stripe, etc."
               value={form.company}
               onChange={handleChange}
-              className="w-full rounded-xl border border-zinc-200 bg-zinc-50/50 px-4 py-3 text-sm text-zinc-900 placeholder-zinc-400 transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/10 focus:outline-none"
+              className="w-full rounded-xl border border-white/[0.08] bg-[#0B0D12] px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-zinc-500 transition focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 focus:outline-none"
               required
             />
           </div>
 
           {/* Position */}
           <div className="md:col-span-2">
-            <label className="block text-sm font-semibold text-zinc-700 mb-1.5">
+            <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
               Job Position <span className="text-rose-500">*</span>
             </label>
             <input
@@ -198,14 +198,14 @@ export default function EditJobPage({ params }: EditJobPageProps) {
               placeholder="Software Engineer, Frontend Developer, etc."
               value={form.position}
               onChange={handleChange}
-              className="w-full rounded-xl border border-zinc-200 bg-zinc-50/50 px-4 py-3 text-sm text-zinc-900 placeholder-zinc-400 transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/10 focus:outline-none"
+              className="w-full rounded-xl border border-white/[0.08] bg-[#0B0D12] px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-zinc-500 transition focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 focus:outline-none"
               required
             />
           </div>
 
           {/* Location */}
           <div>
-            <label className="block text-sm font-semibold text-zinc-700 mb-1.5">
+            <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
               Location
             </label>
             <input
@@ -213,13 +213,13 @@ export default function EditJobPage({ params }: EditJobPageProps) {
               placeholder="San Francisco, Remote, Hybrid"
               value={form.location}
               onChange={handleChange}
-              className="w-full rounded-xl border border-zinc-200 bg-zinc-50/50 px-4 py-3 text-sm text-zinc-900 placeholder-zinc-400 transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/10 focus:outline-none"
+              className="w-full rounded-xl border border-white/[0.08] bg-[#0B0D12] px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-zinc-500 transition focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 focus:outline-none"
             />
           </div>
 
           {/* Salary */}
           <div>
-            <label className="block text-sm font-semibold text-zinc-700 mb-1.5">
+            <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
               Salary
             </label>
             <input
@@ -227,39 +227,39 @@ export default function EditJobPage({ params }: EditJobPageProps) {
               placeholder="e.g. $120,000/yr"
               value={form.salary}
               onChange={handleChange}
-              className="w-full rounded-xl border border-zinc-200 bg-zinc-50/50 px-4 py-3 text-sm text-zinc-900 placeholder-zinc-400 transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/10 focus:outline-none"
+              className="w-full rounded-xl border border-white/[0.08] bg-[#0B0D12] px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-zinc-500 transition focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 focus:outline-none"
             />
           </div>
 
           {/* Status */}
           <div>
-            <label className="block text-sm font-semibold text-zinc-700 mb-1.5">
+            <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
               Status
             </label>
             <select
               name="status"
               value={form.status}
               onChange={handleChange}
-              className="w-full rounded-xl border border-zinc-200 bg-zinc-50/50 px-4 py-3 text-sm text-zinc-900 transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/10 focus:outline-none cursor-pointer"
+              className="w-full rounded-xl border border-white/[0.08] bg-[#0B0D12] px-3.5 py-2.5 text-xs sm:text-sm text-white transition focus:border-blue-500/50 focus:outline-none cursor-pointer"
             >
               <option value="APPLIED">Applied</option>
               <option value="INTERVIEW">Interview</option>
               <option value="OFFER">Offer</option>
-              <option value="REJECTED">Rejected</option>
               <option value="HIRED">Hired</option>
+              <option value="REJECTED">Rejected</option>
             </select>
           </div>
 
           {/* Job Type */}
           <div>
-            <label className="block text-sm font-semibold text-zinc-700 mb-1.5">
+            <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
               Job Type
             </label>
             <select
               name="jobType"
               value={form.jobType}
               onChange={handleChange}
-              className="w-full rounded-xl border border-zinc-200 bg-zinc-50/50 px-4 py-3 text-sm text-zinc-900 transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/10 focus:outline-none cursor-pointer"
+              className="w-full rounded-xl border border-white/[0.08] bg-[#0B0D12] px-3.5 py-2.5 text-xs sm:text-sm text-white transition focus:border-blue-500/50 focus:outline-none cursor-pointer"
             >
               <option value="FULL_TIME">Full Time</option>
               <option value="PART_TIME">Part Time</option>
@@ -271,14 +271,14 @@ export default function EditJobPage({ params }: EditJobPageProps) {
 
           {/* Work Mode */}
           <div>
-            <label className="block text-sm font-semibold text-zinc-700 mb-1.5">
+            <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
               Work Mode
             </label>
             <select
               name="workMode"
               value={form.workMode || "ONSITE"}
               onChange={handleChange}
-              className="w-full rounded-xl border border-zinc-200 bg-zinc-50/50 px-4 py-3 text-sm text-zinc-900 transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/10 focus:outline-none cursor-pointer"
+              className="w-full rounded-xl border border-white/[0.08] bg-[#0B0D12] px-3.5 py-2.5 text-xs sm:text-sm text-white transition focus:border-blue-500/50 focus:outline-none cursor-pointer"
             >
               <option value="ONSITE">On Site</option>
               <option value="REMOTE">Remote</option>
@@ -288,7 +288,7 @@ export default function EditJobPage({ params }: EditJobPageProps) {
 
           {/* Job URL */}
           <div>
-            <label className="block text-sm font-semibold text-zinc-700 mb-1.5">
+            <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
               Job URL
             </label>
             <input
@@ -296,13 +296,13 @@ export default function EditJobPage({ params }: EditJobPageProps) {
               placeholder="https://company.com/careers/job"
               value={form.jobUrl}
               onChange={handleChange}
-              className="w-full rounded-xl border border-zinc-200 bg-zinc-50/50 px-4 py-3 text-sm text-zinc-900 placeholder-zinc-400 transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/10 focus:outline-none"
+              className="w-full rounded-xl border border-white/[0.08] bg-[#0B0D12] px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-zinc-500 transition focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 focus:outline-none"
             />
           </div>
 
           {/* Notes */}
           <div className="md:col-span-2">
-            <label className="block text-sm font-semibold text-zinc-700 mb-1.5">
+            <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
               Application Notes
             </label>
             <textarea
@@ -311,32 +311,32 @@ export default function EditJobPage({ params }: EditJobPageProps) {
               value={form.notes}
               onChange={handleChange}
               rows={4}
-              className="w-full rounded-xl border border-zinc-200 bg-zinc-50/50 px-4 py-3 text-sm text-zinc-900 placeholder-zinc-400 transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/10 focus:outline-none"
+              className="w-full rounded-xl border border-white/[0.08] bg-[#0B0D12] px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-zinc-500 transition focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 focus:outline-none resize-none"
             />
           </div>
         </div>
 
         {/* Buttons */}
-        <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-4 border-t border-zinc-100">
+        <div className="flex flex-col sm:flex-row items-center justify-end gap-2.5 pt-4 border-t border-white/[0.06]">
           <Link
             href="/jobs"
-            className="flex w-full sm:w-auto items-center justify-center rounded-xl border border-zinc-200 bg-white px-6 py-3 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50 hover:text-zinc-950"
+            className="flex w-full sm:w-auto items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2 text-xs font-semibold text-zinc-300 transition hover:bg-white/[0.06] hover:text-white"
           >
             Cancel
           </Link>
           <button
             type="submit"
             disabled={saving}
-            className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:opacity-50 cursor-pointer"
+            className="flex w-full sm:w-auto items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-blue-500 disabled:opacity-50 cursor-pointer"
           >
             {saving ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
                 <span>Saving Changes...</span>
               </>
             ) : (
               <>
-                <Save className="h-4 w-4" />
+                <Save className="h-3.5 w-3.5" />
                 <span>Save Changes</span>
               </>
             )}

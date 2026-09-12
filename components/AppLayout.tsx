@@ -23,16 +23,16 @@ export default function AppLayout({ children }: AppLayoutProps) {
     pathname.startsWith("/profile");
 
   if (isAuthPage) {
-    return <div className="min-h-screen bg-zinc-50">{children}</div>;
+    return <div className="min-h-screen bg-[#0B0D12] text-zinc-100">{children}</div>;
   }
 
   if (isDashboardPage) {
     return (
-      <div className="flex min-h-screen flex-col md:flex-row bg-zinc-50/50">
+      <div className="flex min-h-screen flex-col md:flex-row bg-[#0B0D12] text-zinc-100">
         <Sidebar />
         <div className="flex-1 flex flex-col min-w-0">
           <Navbar />
-          <main className="flex-1 p-6 md:p-10">{children}</main>
+          <main className="flex-1 p-5 md:p-8 lg:p-10">{children}</main>
         </div>
       </div>
     );
@@ -40,7 +40,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
   // Public Landing Page (Homepage)
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-[#0B0D12] text-zinc-100">
       <Navbar />
       <main className="flex-1">{children}</main>
       <Footer />

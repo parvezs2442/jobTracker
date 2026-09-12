@@ -7,12 +7,12 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
-      <body className="min-h-screen flex flex-col bg-zinc-50">
+    <html lang="en" className="dark">
+      <body className="min-h-screen flex flex-col bg-[#0B0D12] text-zinc-100 antialiased selection:bg-blue-500/25 selection:text-white">
         <AuthProvider>
           <AppLayout>{children}</AppLayout>
         </AuthProvider>
-        <Toaster richColors closeButton position="top-right" />
+        <Toaster theme="dark" richColors closeButton position="top-right" />
       </body>
     </html>
   );

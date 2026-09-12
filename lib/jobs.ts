@@ -1,9 +1,36 @@
 export interface CreateJobPayload {
   company: string;
   position: string;
-  location: string;
-  salary: string;
-  status: string;
+  location?: string;
+  salary?: string;
+  status?: string;
+  jobType?: string;
+  workMode?: string;
+  jobUrl?: string;
+  notes?: string;
+}
+
+export interface JobItem {
+  id: string;
+  userId: string;
+  company: string;
+  position: string;
+  location?: string | null;
+  salary?: string | null;
+  status: "APPLIED" | "INTERVIEW" | "OFFER" | "HIRED" | "REJECTED" | string;
+  jobType?: string | null;
+  workMode?: string | null;
+  jobUrl?: string | null;
+  notes?: string | null;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
+export interface JobApiResponse {
+  success?: boolean;
+  message?: string;
+  job?: JobItem;
+  jobs?: JobItem[];
 }
 
 export async function getAllJobs() {

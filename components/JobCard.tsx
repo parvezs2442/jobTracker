@@ -34,17 +34,17 @@ export default function JobCard({ job }: JobCardProps) {
   const getStatusStyle = (status: string) => {
     switch (status.toUpperCase()) {
       case "APPLIED":
-        return "bg-blue-50 text-blue-700 border-blue-100";
+        return "bg-blue-500/10 text-blue-400 border-blue-500/20";
       case "INTERVIEW":
-        return "bg-amber-50 text-amber-700 border-amber-100";
+        return "bg-indigo-500/10 text-indigo-400 border-indigo-500/20";
       case "OFFER":
-        return "bg-emerald-50 text-emerald-700 border-emerald-100";
-      case "REJECTED":
-        return "bg-rose-50 text-rose-700 border-rose-100";
+        return "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
       case "HIRED":
-        return "bg-teal-50 text-teal-700 border-teal-100";
+        return "bg-cyan-500/10 text-cyan-400 border-cyan-500/20";
+      case "REJECTED":
+        return "bg-rose-500/10 text-rose-400 border-rose-500/20";
       default:
-        return "bg-zinc-50 text-zinc-700 border-zinc-100";
+        return "bg-white/[0.04] text-zinc-400 border-white/[0.06]";
     }
   };
 
@@ -75,19 +75,19 @@ export default function JobCard({ job }: JobCardProps) {
   }
 
   return (
-    <div className="hover-card-effect flex flex-col justify-between rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm">
+    <div className="flex flex-col justify-between rounded-2xl border border-white/[0.07] bg-[#141824] p-5 shadow-xs transition-all duration-150 hover:bg-[#181D2A] hover:border-white/[0.14] hover:shadow-[0_8px_24px_rgba(0,0,0,0.4)]">
       <div className="space-y-4">
         {/* Header */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-zinc-50 border border-zinc-100 text-base font-extrabold text-zinc-600">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/[0.05] border border-white/[0.08] text-sm font-bold text-white shadow-xs">
               {job.company.charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0">
-              <h2 className="truncate text-base font-bold text-zinc-950" title={job.company}>
+              <h3 className="truncate text-base font-bold text-white" title={job.company}>
                 {job.company}
-              </h2>
-              <p className="truncate text-sm text-zinc-500 font-medium" title={job.position}>
+              </h3>
+              <p className="truncate text-xs text-zinc-400 font-medium" title={job.position}>
                 {job.position}
               </p>
             </div>
@@ -99,19 +99,19 @@ export default function JobCard({ job }: JobCardProps) {
         </div>
 
         {/* Info Rows */}
-        <div className="space-y-2 pt-2 border-t border-zinc-50">
-          <div className="flex items-center gap-2 text-sm text-zinc-500">
-            <MapPin className="h-4 w-4 text-zinc-400 shrink-0" />
+        <div className="space-y-2 pt-2.5 border-t border-white/[0.05]">
+          <div className="flex items-center gap-2 text-xs text-zinc-400">
+            <MapPin className="h-3.5 w-3.5 text-zinc-500 shrink-0" />
             <span className="truncate">{job.location || "Not specified"}</span>
           </div>
 
-          <div className="flex items-center gap-2 text-sm text-zinc-500">
-            <DollarSign className="h-4 w-4 text-zinc-400 shrink-0" />
+          <div className="flex items-center gap-2 text-xs text-zinc-400">
+            <DollarSign className="h-3.5 w-3.5 text-zinc-500 shrink-0" />
             <span className="truncate">{job.salary || "Not specified"}</span>
           </div>
 
-          <div className="flex items-center gap-2 text-sm text-zinc-500">
-            <Briefcase className="h-4 w-4 text-zinc-400 shrink-0" />
+          <div className="flex items-center gap-2 text-xs text-zinc-400">
+            <Briefcase className="h-3.5 w-3.5 text-zinc-500 shrink-0" />
             <span className="truncate">
               {job.jobType.replace("_", " ").toLowerCase()}
               {job.workMode ? ` • ${getWorkModeLabel(job.workMode)}` : ""}
@@ -121,10 +121,10 @@ export default function JobCard({ job }: JobCardProps) {
       </div>
 
       {/* Action Footer */}
-      <div className="mt-6 flex items-center justify-end gap-2.5 pt-4 border-t border-zinc-50">
+      <div className="mt-5 flex items-center justify-end gap-2 pt-3.5 border-t border-white/[0.05]">
         <Link
           href={`/jobs/${job.id}`}
-          className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3.5 py-2 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 hover:text-zinc-950 transition"
+          className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-1.5 text-xs font-medium text-zinc-300 hover:bg-white/[0.06] hover:text-white transition"
         >
           <Edit2 className="h-3.5 w-3.5" />
           <span>Edit</span>
@@ -133,7 +133,7 @@ export default function JobCard({ job }: JobCardProps) {
         <button
           onClick={handleDelete}
           disabled={isDeleting}
-          className="flex items-center gap-1.5 rounded-lg border border-rose-100 bg-rose-50/50 px-3.5 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-100/70 hover:text-rose-700 disabled:opacity-50 transition cursor-pointer"
+          className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-1.5 text-xs font-medium text-zinc-400 hover:border-rose-500/30 hover:bg-rose-500/10 hover:text-rose-400 disabled:opacity-50 transition cursor-pointer"
         >
           <Trash2 className="h-3.5 w-3.5" />
           <span>{isDeleting ? "Deleting..." : "Delete"}</span>
